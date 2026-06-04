@@ -17,7 +17,7 @@ public class MainSettingPanel extends JPanel {
         this.configLabel = new JLabel("הגדרות מהשרת יופיעו כאן...");
         this.add(configLabel);
 
-        this.refreshButton = new JButton("Refresh Setting");
+        this.refreshButton = new JButton("Refresh Config");
         this.refreshButton.addActionListener(e -> {
             // משנים את הטקסט כדי שהמשתמש ידע שאנחנו טוענים
             this.configLabel.setText("מתחבר לשרת מביא הגדרות...");
@@ -42,11 +42,12 @@ public class MainSettingPanel extends JPanel {
                     String wallColor = dataAsJson.getString("wallCellColor");
                     String pathColor = dataAsJson.getString("pathColor");
                     boolean drawGrid = dataAsJson.getBoolean("drawGrid");
+                    String gridColor = dataAsJson.getString("gridColor");
                     int animationDelay = dataAsJson.getInt("animationDelayMs");
 
                     // 5. בניית הטקסט שנרצה להציג למשתמש
-                    String configText = String.format("צבע הקירות: %s | צבע הנתיב: %s | האם לצייר קווי רשת?: %b | זמן השהיה: %d ms",
-                            wallColor, pathColor, drawGrid, animationDelay);
+                    String configText = String.format("צבע הקירות: %s | צבע הנתיב: %s | האם יהיו קווי רשת? %b | צבע קווי הרשת: %s | זמן השהיה: %d ms",
+                            wallColor, pathColor, drawGrid, gridColor, animationDelay);
 
                     // 6. עדכון המסך מתוך תהליך הרקע (חובה להשתמש ב-SwingUtilities)
                     SwingUtilities.invokeLater(() -> {
