@@ -45,7 +45,7 @@ public class MainSettingPanel extends JPanel {
                     int animationDelay = dataAsJson.getInt("animationDelayMs");
 
                     // 5. בניית הטקסט שנרצה להציג למשתמש
-                    String configText = String.format("קירות: %s | נתיב: %s | רשת: %b | השהיה: %d ms",
+                    String configText = String.format("צבע הקירות: %s | צבע הנתיב: %s | האם לצייר קווי רשת?: %b | זמן השהיה: %d ms",
                             wallColor, pathColor, drawGrid, animationDelay);
 
                     // 6. עדכון המסך מתוך תהליך הרקע (חובה להשתמש ב-SwingUtilities)
