@@ -11,13 +11,12 @@ public class Main {
 
     public static void main(String[] args) {
         JFrame window = new JFrame();
-        window.setVisible(true);
         window.setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
         window.setResizable(false);
         window.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         window.setLocationRelativeTo(null);
         window.setLayout(null);
         window.add(new MainSettingPanel(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT));
-//        window.add(new MainSettingPanel(WINDOW_WIDTH/4, 0, (WINDOW_WIDTH * 3)/4, WINDOW_HEIGHT));
+        window.setVisible(true);
     }
 }
