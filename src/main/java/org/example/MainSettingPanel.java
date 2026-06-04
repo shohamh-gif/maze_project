@@ -73,7 +73,7 @@ public class MainSettingPanel extends JPanel {
         this.add(heightField);
 
         this.getMazeButton = new JButton("GET MAZE");
-        this.refreshButton.addActionListener(e -> {
+        this.getMazeButton.addActionListener(e -> {
             System.out.println("הכפתור נלחץ!");
         });
         this.add(getMazeButton);
