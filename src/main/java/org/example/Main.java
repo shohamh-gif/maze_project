@@ -19,7 +19,6 @@ public class Main {
         // יצירת הפאנל מתוך תיקיית ה-gui
         MainSettingPanel settingPanel = new MainSettingPanel(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
         window.add(settingPanel);
-
         window.setVisible(true);
     }
 }

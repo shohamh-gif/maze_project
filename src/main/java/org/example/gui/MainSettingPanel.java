@@ -3,9 +3,14 @@ package org.example.gui;
 import org.example.api.MazeApiService;
 import org.json.JSONObject;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.util.Scanner;
+
 
 public class MainSettingPanel extends JPanel {
 
@@ -31,6 +36,7 @@ public class MainSettingPanel extends JPanel {
 
     private int mazeWidth;
     private int mazeHeight;
+    private boolean[][] mazePixel;
 
     private final MazeApiService apiService;
 
@@ -212,6 +218,8 @@ public class MainSettingPanel extends JPanel {
             // עדכון השדות לפי הערכים התקינים שנשמרו
             widthField.setText(String.valueOf(this.mazeWidth));
             heightField.setText(String.valueOf(this.mazeHeight));
+
+            fetchAndReadMazeImage();
         });
 
         card.add(getMazeButton);
@@ -259,6 +267,68 @@ public class MainSettingPanel extends JPanel {
             }
         }).start();
     }
+    // שולחת בקשה לשרת, מקבלת תמונת מבוך, ואז קוראת את הפיקסלים שלה
+// שולחת בקשה לשרת, מקבלת תמונת מבוך, ממירה למערך ומציגה את התמונה בדפדפן
+    private void fetchAndReadMazeImage() {
+        this.errorLabel.setText("טוען וקורא מבוך מהשרת...");
+
+        new Thread(() -> {
+            try {
+                BufferedImage mazeImage = apiService.fetchMazeImage(mazeWidth, mazeHeight);
+
+                this.mazePixel = convertImageToBooleanMatrix(mazeImage);
+
+                openMazeImageInBrowser(mazeImage);
+
+                SwingUtilities.invokeLater(() ->
+                        this.errorLabel.setText("המבוך נקרא בהצלחה מהשרת.")
+                );
+
+            } catch (Exception ex) {
+                SwingUtilities.invokeLater(() ->
+                        this.errorLabel.setText("שגיאה: לא הצלחנו לקרוא את תמונת המבוך.")
+                );
+
+                ex.printStackTrace();
+            }
+        }).start();
+    }
+
+    // שומרת את תמונת המבוך כקובץ זמני ופותחת אותה בדפדפן ברירת המחדל
+    private void openMazeImageInBrowser(BufferedImage mazeImage) throws Exception {
+        File mazeFile = File.createTempFile("maze-", ".png");
+
+        ImageIO.write(mazeImage, "png", mazeFile);
+
+        Desktop.getDesktop().browse(mazeFile.toURI());
+    }
+
+    // ממירה את תמונת המבוך למערך דו ממדי של true ו false
+    private boolean[][] convertImageToBooleanMatrix(BufferedImage mazeImage) {
+        int imageWidth = mazeImage.getWidth();
+        int imageHeight = mazeImage.getHeight();
+
+        boolean[][] matrix = new boolean[imageHeight][imageWidth];
+
+        for (int y = 0; y < imageHeight; y++) {
+            for (int x = 0; x < imageWidth; x++) {
+                int currentRgb = mazeImage.getRGB(x, y);
+                Color pixelColor = new Color(currentRgb);
+                matrix[y][x] = isWhite(pixelColor);
+                System.out.print(matrix[y][x] + "  ");
+            }
+            System.out.println();
+        }
+
+        return matrix;
+    }
+    // בודקת אם צבע הפיקסל לבן
+    private boolean isWhite(Color color) {
+        return color.getRed() == 255 &&
+                color.getGreen() == 255 &&
+                color.getBlue() == 255;
+    }
+
 
     private void styleButton(JButton button, Color bg) {
         button.setFont(LABEL_FONT);
