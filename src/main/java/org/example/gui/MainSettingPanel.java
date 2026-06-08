@@ -17,6 +17,8 @@ public class MainSettingPanel extends JPanel {
     private static final int DEFAULT_MAZE_SIZE = 30;
     private static final int MIN_MAZE_SIZE = 5;
     private static final int MAX_MAZE_SIZE = 100;
+    private static final int CELL_SIZE = 20;
+
 
     private static final Font TITLE_FONT = new Font("Segoe UI", Font.BOLD, 20);
     private static final Font LABEL_FONT = new Font("Segoe UI", Font.BOLD, 14);
@@ -24,6 +26,8 @@ public class MainSettingPanel extends JPanel {
 
     private static final Color WINDOW_BG = new Color(253, 242, 244);
     private static final Color CARD_BG = Color.WHITE;
+    private static final Color TRANSITION_COLOR = Color.WHITE;
+
     private static final Color DEEP_PINK = new Color(214, 51, 108);
     private static final Color SOFT_PINK = new Color(240, 98, 146);
     private static final Color TEXT_DARK = new Color(60, 60, 60);
@@ -34,9 +38,15 @@ public class MainSettingPanel extends JPanel {
     private JLabel configLabel;
     private JLabel errorLabel;
 
+    private String wallColor;
+    private String pathColor;
+    private boolean drawGrid;
+    private String gridColor;
+    int animationDelay;
     private int mazeWidth;
     private int mazeHeight;
     private boolean[][] mazePixel;
+
 
     private final MazeApiService apiService;
 
@@ -219,7 +229,9 @@ public class MainSettingPanel extends JPanel {
             widthField.setText(String.valueOf(this.mazeWidth));
             heightField.setText(String.valueOf(this.mazeHeight));
 
+
             fetchAndReadMazeImage();
+
         });
 
         card.add(getMazeButton);
@@ -278,7 +290,7 @@ public class MainSettingPanel extends JPanel {
 
                 this.mazePixel = convertImageToBooleanMatrix(mazeImage);
 
-                openMazeImageInBrowser(mazeImage);
+                openMazeImageInBrowser(mazeImage); //לזכור להוריד אחרי שנסיים
 
                 SwingUtilities.invokeLater(() ->
                         this.errorLabel.setText("המבוך נקרא בהצלחה מהשרת.")
