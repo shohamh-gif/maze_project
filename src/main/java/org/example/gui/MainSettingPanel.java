@@ -1,5 +1,6 @@
 package org.example.gui;
 
+import org.example.Main;
 import org.example.api.MazeApiService;
 import org.json.JSONObject;
 
@@ -17,21 +18,13 @@ public class MainSettingPanel extends JPanel {
     private static final int DEFAULT_MAZE_SIZE = 30;
     private static final int MIN_MAZE_SIZE = 5;
     private static final int MAX_MAZE_SIZE = 100;
-    private static final int CELL_SIZE = 20;
-
 
     private static final Font TITLE_FONT = new Font("Segoe UI", Font.BOLD, 20);
-    private static final Font LABEL_FONT = new Font("Segoe UI", Font.BOLD, 14);
     private static final Font MAIN_FONT = new Font("Segoe UI", Font.PLAIN, 14);
 
     private static final Color WINDOW_BG = new Color(253, 242, 244);
     private static final Color CARD_BG = Color.WHITE;
-    private static final Color TRANSITION_COLOR = Color.WHITE;
 
-    private static final Color DEEP_PINK = new Color(214, 51, 108);
-    private static final Color SOFT_PINK = new Color(240, 98, 146);
-    private static final Color TEXT_DARK = new Color(60, 60, 60);
-    private static final Color ERROR_COLOR = new Color(217, 48, 37);
 
     private JTextField widthField;
     private JTextField heightField;
@@ -42,7 +35,7 @@ public class MainSettingPanel extends JPanel {
     private String pathColor;
     private boolean drawGrid;
     private String gridColor;
-    int animationDelay;
+    private int animationDelay;
     private int mazeWidth;
     private int mazeHeight;
     private boolean[][] mazePixel;
@@ -99,7 +92,7 @@ public class MainSettingPanel extends JPanel {
         // יצירת כותרת ראשית
         JLabel titleLabel = new JLabel("הגדרות ליצירת מבוך");
         titleLabel.setFont(TITLE_FONT);
-        titleLabel.setForeground(DEEP_PINK);
+        titleLabel.setForeground(Main.DEEP_PINK);
 
         // ממרכז את הכותרת בתוך BoxLayout
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -135,7 +128,7 @@ public class MainSettingPanel extends JPanel {
         // תווית שתציג את הגדרות העיצוב שחוזרות מהשרת
         this.configLabel = new JLabel("הגדרות העיצוב מהשרת יופיעו כאן לאחר טעינה", JLabel.CENTER);
         this.configLabel.setFont(MAIN_FONT);
-        this.configLabel.setForeground(TEXT_DARK);
+        this.configLabel.setForeground(Main.TEXT_DARK);
         this.configLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         // הגבלת רוחב התווית, כדי שהיא תישאר בתוך קופסת השרת
@@ -145,7 +138,7 @@ public class MainSettingPanel extends JPanel {
 
         // כפתור מקומי, כי אין צורך לגשת אליו מפונקציות אחרות
         JButton refreshButton = new JButton("טען הגדרות שרת");
-        styleButton(refreshButton, SOFT_PINK);
+        Main.styleButton(refreshButton, Main.SOFT_PINK);
         refreshButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         // בלחיצה על הכפתור נטענות הגדרות מהשרת
@@ -160,8 +153,8 @@ public class MainSettingPanel extends JPanel {
 
         // כותרת לאזור הקלט של גודל המבוך
         JLabel sizeTitle = new JLabel("קביעת גודל המבוך (בין 5 ל-100):");
-        sizeTitle.setFont(LABEL_FONT);
-        sizeTitle.setForeground(TEXT_DARK);
+        sizeTitle.setFont(Main.LABEL_FONT);
+        sizeTitle.setForeground(Main.TEXT_DARK);
         sizeTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         card.add(sizeTitle);
@@ -177,7 +170,7 @@ public class MainSettingPanel extends JPanel {
         widthBox.setBackground(CARD_BG);
 
         JLabel widthLabel = new JLabel("רוחב");
-        widthLabel.setFont(LABEL_FONT);
+        widthLabel.setFont(Main.LABEL_FONT);
         widthLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         // שדה קלט שמתחיל מערך ברירת המחדל
@@ -194,7 +187,7 @@ public class MainSettingPanel extends JPanel {
         heightBox.setBackground(CARD_BG);
 
         JLabel heightLabel = new JLabel("גובה");
-        heightLabel.setFont(LABEL_FONT);
+        heightLabel.setFont(Main.LABEL_FONT);
         heightLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         // שדה קלט שמתחיל מערך ברירת המחדל
@@ -214,7 +207,7 @@ public class MainSettingPanel extends JPanel {
 
         // כפתור מקומי ליצירת מבוך
         JButton getMazeButton = new JButton("צור מבוך חדש");
-        styleButton(getMazeButton, DEEP_PINK);
+        Main.styleButton(getMazeButton, Main.DEEP_PINK);
         getMazeButton.setFont(new Font("Segoe UI", Font.BOLD, 15));
         getMazeButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 
@@ -239,8 +232,8 @@ public class MainSettingPanel extends JPanel {
 
         // תווית להצגת הודעות שגיאה למשתמש
         this.errorLabel = new JLabel(" ", JLabel.CENTER);
-        this.errorLabel.setForeground(ERROR_COLOR);
-        this.errorLabel.setFont(LABEL_FONT);
+        this.errorLabel.setForeground(Main.ERROR_COLOR);
+        this.errorLabel.setFont(Main.LABEL_FONT);
         this.errorLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         card.add(errorLabel);
@@ -256,19 +249,19 @@ public class MainSettingPanel extends JPanel {
             try {
                 JSONObject dataAsJson = apiService.fetchRenderConfig();
 
-                String wallColor = dataAsJson.getString("wallCellColor");
-                String pathColor = dataAsJson.getString("pathColor");
-                boolean drawGrid = dataAsJson.getBoolean("drawGrid");
-                String gridColor = dataAsJson.getString("gridColor");
-                int animationDelay = dataAsJson.getInt("animationDelayMs");
+                this.wallColor = dataAsJson.getString("wallCellColor");
+                this.pathColor = dataAsJson.getString("pathColor");
+                this.drawGrid = dataAsJson.getBoolean("drawGrid");
+                this.gridColor = dataAsJson.getString("gridColor");
+                this.animationDelay = dataAsJson.getInt("animationDelayMs");
 
                 String configText = String.format(
                         "צבע הקירות: %s | צבע הנתיב: %s | האם יהיו קווי רשת? %b | צבע קווי הרשת: %s | זמן השהיה: %d ms",
-                        wallColor,
-                        pathColor,
-                        drawGrid,
-                        gridColor,
-                        animationDelay
+                        this.wallColor,
+                        this.pathColor,
+                        this.drawGrid,
+                        this.gridColor,
+                        this.animationDelay
                 );
 
                 SwingUtilities.invokeLater(() -> this.configLabel.setText(configText));
@@ -279,6 +272,7 @@ public class MainSettingPanel extends JPanel {
             }
         }).start();
     }
+
     // שולחת בקשה לשרת, מקבלת תמונת מבוך, ואז קוראת את הפיקסלים שלה
 // שולחת בקשה לשרת, מקבלת תמונת מבוך, ממירה למערך ומציגה את התמונה בדפדפן
     private void fetchAndReadMazeImage() {
@@ -292,9 +286,33 @@ public class MainSettingPanel extends JPanel {
 
                 openMazeImageInBrowser(mazeImage); //לזכור להוריד אחרי שנסיים
 
-                SwingUtilities.invokeLater(() ->
-                        this.errorLabel.setText("המבוך נקרא בהצלחה מהשרת.")
-                );
+                SwingUtilities.invokeLater(() -> {
+                    this.errorLabel.setText("המבוך נקרא בהצלחה מהשרת.");
+
+                    // 2. יצירת לוח הציור של המבוך
+                    // שימו לב: אנחנו מעבירים את mazePixel שהרגע קיבלנו,
+                    // ואת שאר הצבעים שאספנו בשלב 8
+                    MazePanel mazePanel = new MazePanel(
+                            this.mazePixel,
+                            Color.decode(this.wallColor),
+                            Color.decode(this.pathColor),
+                            this.drawGrid,
+                            Color.decode(this.gridColor),
+                            this.animationDelay
+                    );
+                    JFrame mainFrame = (JFrame) SwingUtilities.getWindowAncestor(MainSettingPanel.this);
+
+                    if (mainFrame != null) {
+                        // הנה הקסם: החלפת כל תוכן החלון בפאנל המבוך החדש בשורה אחת!
+                        mainFrame.setContentPane(mazePanel);
+
+                        // רענון חובה של החלון כדי שיציג את השינוי
+                        mainFrame.revalidate();
+                        mainFrame.repaint();
+                    }
+
+                });
+
 
             } catch (Exception ex) {
                 SwingUtilities.invokeLater(() ->
@@ -334,21 +352,12 @@ public class MainSettingPanel extends JPanel {
 
         return matrix;
     }
+
     // בודקת אם צבע הפיקסל לבן
     private boolean isWhite(Color color) {
         return color.getRed() == 255 &&
                 color.getGreen() == 255 &&
                 color.getBlue() == 255;
-    }
-
-
-    private void styleButton(JButton button, Color bg) {
-        button.setFont(LABEL_FONT);
-        button.setBackground(bg);
-        button.setForeground(Color.WHITE);
-        button.setFocusPainted(false);
-        button.setBorder(BorderFactory.createEmptyBorder(8, 20, 8, 20));
-        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
     }
 
     private void styleTextField(JTextField textField) {
