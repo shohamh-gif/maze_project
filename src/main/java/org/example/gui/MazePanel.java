@@ -25,11 +25,16 @@ public class MazePanel extends JPanel {
         this.gridColor = gridColor;
         this.animationDelay = animationDelay;
 
-        JButton checkSolution = new JButton("צור מבוך חדש");
+        this.setLayout(new BorderLayout());
+        JButton checkSolution = new JButton("בדוק פיתרון");
         Main.styleButton(checkSolution, Main.DEEP_PINK);
         checkSolution.setFont(new Font("Segoe UI", Font.BOLD, 15));
-        checkSolution.setBounds(100, 50, 20, 10);
-        this.add(checkSolution);
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setOpaque(false); // הופך את הרקע לשקוף
+        buttonPanel.add(checkSolution);
+
+        // מוסיפים את הכפתור לחלק התחתון של החלון
+        this.add(buttonPanel, BorderLayout.SOUTH);
 
 
     }
