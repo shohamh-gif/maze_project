@@ -1,8 +1,9 @@
 package org.example.gui;
 
+import org.example.Main;
+
 import javax.swing.*;
 import java.awt.*;
-import java.awt.geom.Rectangle2D;
 
 public class MazeCanvas extends JPanel {
 
@@ -25,8 +26,9 @@ public class MazeCanvas extends JPanel {
         this.drawGrid = drawGrid;
         this.gridColor = gridColor;
 
-        setBackground(new Color(253, 242, 244));
-        setOpaque(true);    }
+        setBackground(Main.LIGHT_PINK);
+        setOpaque(true);
+    }
 
     @Override
     protected void paintComponent(Graphics g) {
@@ -57,35 +59,36 @@ public class MazeCanvas extends JPanel {
         double startX = (panelWidth - mazeWidth) / 2.0;
         double startY = (panelHeight - mazeHeight) / 2.0;
 
-        Graphics2D g2 = (Graphics2D) g;
-
         for (int y = 0; y < rows; y++) {
             for (int x = 0; x < cols; x++) {
 
                 if (mazeMatrix[y][x]) {
-                    g2.setColor(Color.WHITE);
+                    g.setColor(Color.WHITE);
                 } else {
-                    g2.setColor(wallColor);
+                    g.setColor(wallColor);
                 }
 
-                double pixelX = startX + x * cellSize;
-                double pixelY = startY + y * cellSize;
+                // --- התיקון לקווים הלבנים (עיגול מתמטי מושלם) ---
+                // חישוב הפיקסל המדויק של תחילת המשבצת וסוף המשבצת (ללא חורים)
+                int pixelX = (int) Math.round(startX + x * cellSize);
+                int pixelY = (int) Math.round(startY + y * cellSize);
+                int nextX = (int) Math.round(startX + (x + 1) * cellSize);
+                int nextY = (int) Math.round(startY + (y + 1) * cellSize);
 
-                g2.fill(new Rectangle2D.Double(
-                        pixelX,
-                        pixelY,
-                        cellSize,
-                        cellSize
-                ));
+                int width = nextX - pixelX;
+                int height = nextY - pixelY;
+
+                g.fillRect(pixelX, pixelY, width, height);
             }
         }
 
+        // ציור הרשת מותאם גם הוא לעיגול המדויק
         if (drawGrid && cellSize >= 4) {
-            g2.setColor(gridColor);
+            g.setColor(gridColor);
 
             for (int x = 0; x <= cols; x++) {
                 int lineX = (int) Math.round(startX + x * cellSize);
-                g2.drawLine(
+                g.drawLine(
                         lineX,
                         (int) Math.round(startY),
                         lineX,
@@ -95,7 +98,7 @@ public class MazeCanvas extends JPanel {
 
             for (int y = 0; y <= rows; y++) {
                 int lineY = (int) Math.round(startY + y * cellSize);
-                g2.drawLine(
+                g.drawLine(
                         (int) Math.round(startX),
                         lineY,
                         (int) Math.round(startX + mazeWidth),

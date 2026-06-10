@@ -13,24 +13,50 @@ public class MazePanel extends JPanel {
         this.previousPanel = previousPanel;
         this.animationDelay = animationDelay;
 
-        // הגדרת פריסת המסך לחלקים (מרכז ותחתית)
+        // הגדרת פריסת המסך לחלקים (למעלה, מרכז ותחתית)
         this.setLayout(new BorderLayout());
 
-        // יצירת קנבס הציור מהמחלקה החיצונית והעברת כל הנתונים בבנאי
-        MazeCanvas mazeCanvas = new MazeCanvas(mazeMatrix, wallColor, pathColor, drawGrid, gridColor);
+        // --- 1. יצירת אזור עליון משמאל לכפתור החזור ---
+        // FlowLayout.LEFT דוחף את כל מה שבתוכו לצד שמאל
+        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        topPanel.setOpaque(true);
+        topPanel.setBackground(Main.LIGHT_PINK); // צבע רקע תואם לפאנל התחתון
 
-        // הוספת הקנבס למרכז - הוא יתקווץ ויתרחב אוטומטית לפי גודל החלון!
+        JButton backButton = new JButton("חזור להגדרות");
+        Main.styleButton(backButton, Main.DEEP_PINK);
+        backButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
+
+        // פעולת הלחיצה על כפתור חזור
+        backButton.addActionListener(e -> {
+            JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(this);
+            if (topFrame != null) {
+                topFrame.setContentPane(previousPanel);
+                topFrame.revalidate();
+                topFrame.repaint();
+            }
+        });
+
+        topPanel.add(backButton);
+        // הוספת הפאנל העליון לחלק הצפוני של המסך
+        this.add(topPanel, BorderLayout.NORTH);
+
+
+        // --- 2. קנבס הציור של המבוך ---
+        MazeCanvas mazeCanvas = new MazeCanvas(mazeMatrix, wallColor, pathColor, drawGrid, gridColor);
+        // הוספת הקנבס למרכז - יתפוס את כל השטח שבין הלמעלה ללמטה
         this.add(mazeCanvas, BorderLayout.CENTER);
 
-        // יצירת אזור הכפתורים למטה
+
+        // --- 3. יצירת אזור הכפתורים למטה ---
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setOpaque(true);
+        buttonPanel.setBackground(Main.LIGHT_PINK);
+
         JButton checkSolution = new JButton("בדוק פיתרון");
         Main.styleButton(checkSolution, Main.DEEP_PINK);
         checkSolution.setFont(new Font("Segoe UI", Font.BOLD, 15));
 
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.setOpaque(false);
         buttonPanel.add(checkSolution);
-
         // הוספת פאנל הכפתור לחלק התחתון של המסך
         this.add(buttonPanel, BorderLayout.SOUTH);
     }
