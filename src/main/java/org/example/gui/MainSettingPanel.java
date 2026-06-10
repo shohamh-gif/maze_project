@@ -4,12 +4,11 @@ import org.example.Main;
 import org.example.api.MazeApiService;
 import org.json.JSONObject;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
 
 public class MainSettingPanel extends JPanel {
 
@@ -20,15 +19,13 @@ public class MainSettingPanel extends JPanel {
     private static final Font TITLE_FONT = new Font("Segoe UI", Font.BOLD, 20);
     private static final Font MAIN_FONT = new Font("Segoe UI", Font.PLAIN, 14);
 
-    private static final Color WINDOW_BG = new Color(253, 242, 244);
+    private static final Color WINDOW_BG = Main.LIGHT_PINK;
     private static final Color CARD_BG = Color.WHITE;
 
     private JTextField widthField;
     private JTextField heightField;
     private JLabel configLabel;
     private JLabel errorLabel;
-
-    // הפכנו את הכפתור לשדה מחלקה כדי שנוכל להסתיר/להציג אותו
     private JButton getMazeButton;
 
     private String wallColor;
@@ -44,14 +41,20 @@ public class MainSettingPanel extends JPanel {
 
     public MainSettingPanel(int x, int y, int windowWidth, int windowHeight) {
         this.apiService = new MazeApiService();
-
         this.mazeWidth = DEFAULT_MAZE_SIZE;
         this.mazeHeight = DEFAULT_MAZE_SIZE;
 
-        this.setBounds(x, y, windowWidth, windowHeight);
-        this.setBackground(WINDOW_BG);
-        this.setLayout(new GridBagLayout());
+        setupPanel(x, y, windowWidth, windowHeight);
+        add(createMainCard(windowWidth));
+    }
 
+    private void setupPanel(int x, int y, int windowWidth, int windowHeight) {
+        setBounds(x, y, windowWidth, windowHeight);
+        setBackground(WINDOW_BG);
+        setLayout(new GridBagLayout());
+    }
+
+    private JPanel createMainCard(int windowWidth) {
         int cardWidth = windowWidth - 90;
         int cardHeight = 520;
         int serverBoxWidth = cardWidth - 100;
@@ -64,37 +67,50 @@ public class MainSettingPanel extends JPanel {
         card.setMaximumSize(new Dimension(cardWidth, cardHeight));
         card.setMinimumSize(new Dimension(cardWidth, cardHeight));
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-        card.setBorder(BorderFactory.createCompoundBorder(
+        card.setBorder(createCardBorder());
+
+        card.add(createTitleLabel());
+        card.add(Box.createVerticalStrut(20));
+        card.add(createServerBox(serverBoxWidth, serverBoxHeight, configLabelWidth));
+        card.add(Box.createVerticalStrut(25));
+        card.add(createSizeTitleLabel());
+        card.add(Box.createVerticalStrut(10));
+        card.add(createFieldsPanel());
+        card.add(Box.createVerticalStrut(25));
+        card.add(createGetMazeButton());
+        card.add(Box.createVerticalStrut(15));
+        card.add(createErrorLabel());
+
+        return card;
+    }
+
+    private Border createCardBorder() {
+        return BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(243, 213, 220), 1),
                 new EmptyBorder(30, 40, 30, 40)
-        ));
+        );
+    }
 
+    private JLabel createTitleLabel() {
         JLabel titleLabel = new JLabel("הגדרות ליצירת מבוך");
         titleLabel.setFont(TITLE_FONT);
         titleLabel.setForeground(Main.DEEP_PINK);
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        card.add(titleLabel);
-        card.add(Box.createVerticalStrut(20));
 
+        return titleLabel;
+    }
+
+    private JPanel createServerBox(int serverBoxWidth, int serverBoxHeight, int configLabelWidth) {
         JPanel serverBox = new JPanel();
         serverBox.setLayout(new BoxLayout(serverBox, BoxLayout.Y_AXIS));
         serverBox.setBackground(new Color(255, 247, 248));
-        serverBox.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(248, 222, 228), 1),
-                new EmptyBorder(12, 15, 12, 15)
-        ));
+        serverBox.setBorder(createServerBoxBorder());
         serverBox.setAlignmentX(Component.CENTER_ALIGNMENT);
         serverBox.setPreferredSize(new Dimension(serverBoxWidth, serverBoxHeight));
         serverBox.setMaximumSize(new Dimension(serverBoxWidth, serverBoxHeight));
         serverBox.setMinimumSize(new Dimension(serverBoxWidth, serverBoxHeight));
 
-        this.configLabel = new JLabel("הגדרות העיצוב מהשרת יופיעו כאן לאחר טעינה", JLabel.CENTER);
-        this.configLabel.setFont(MAIN_FONT);
-        this.configLabel.setForeground(Main.TEXT_DARK);
-        this.configLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        this.configLabel.setPreferredSize(new Dimension(configLabelWidth, 30));
-        this.configLabel.setMaximumSize(new Dimension(configLabelWidth, 30));
-        this.configLabel.setMinimumSize(new Dimension(configLabelWidth, 30));
+        this.configLabel = createConfigLabel(configLabelWidth);
 
         JButton refreshButton = new JButton("טען הגדרות שרת");
         Main.styleButton(refreshButton, Main.SOFT_PINK);
@@ -105,203 +121,322 @@ public class MainSettingPanel extends JPanel {
         serverBox.add(Box.createVerticalStrut(10));
         serverBox.add(refreshButton);
 
-        card.add(serverBox);
-        card.add(Box.createVerticalStrut(25));
+        return serverBox;
+    }
 
+    private Border createServerBoxBorder() {
+        return BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(248, 222, 228), 1),
+                new EmptyBorder(12, 15, 12, 15)
+        );
+    }
+
+    private JLabel createConfigLabel(int configLabelWidth) {
+        JLabel label = new JLabel("הגדרות העיצוב מהשרת יופיעו כאן לאחר טעינה", JLabel.CENTER);
+        label.setFont(MAIN_FONT);
+        label.setForeground(Main.TEXT_DARK);
+        label.setAlignmentX(Component.CENTER_ALIGNMENT);
+        label.setPreferredSize(new Dimension(configLabelWidth, 30));
+        label.setMaximumSize(new Dimension(configLabelWidth, 30));
+        label.setMinimumSize(new Dimension(configLabelWidth, 30));
+
+        return label;
+    }
+
+    private JLabel createSizeTitleLabel() {
         JLabel sizeTitle = new JLabel("קביעת גודל המבוך (בין 5 ל-100):");
         sizeTitle.setFont(Main.LABEL_FONT);
         sizeTitle.setForeground(Main.TEXT_DARK);
         sizeTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        card.add(sizeTitle);
-        card.add(Box.createVerticalStrut(10));
+        return sizeTitle;
+    }
 
+    private JPanel createFieldsPanel() {
         JPanel fieldsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 30, 0));
         fieldsPanel.setBackground(CARD_BG);
 
-        JPanel widthBox = new JPanel();
-        widthBox.setLayout(new BoxLayout(widthBox, BoxLayout.Y_AXIS));
-        widthBox.setBackground(CARD_BG);
-
-        JLabel widthLabel = new JLabel("רוחב");
-        widthLabel.setFont(Main.LABEL_FONT);
-        widthLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-
         this.widthField = new JTextField(String.valueOf(mazeWidth), 5);
-        styleTextField(widthField);
-
-        widthBox.add(widthLabel);
-        widthBox.add(Box.createVerticalStrut(5));
-        widthBox.add(widthField);
-
-        JPanel heightBox = new JPanel();
-        heightBox.setLayout(new BoxLayout(heightBox, BoxLayout.Y_AXIS));
-        heightBox.setBackground(CARD_BG);
-
-        JLabel heightLabel = new JLabel("גובה");
-        heightLabel.setFont(Main.LABEL_FONT);
-        heightLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-
         this.heightField = new JTextField(String.valueOf(mazeHeight), 5);
+
+        styleTextField(widthField);
         styleTextField(heightField);
 
-        heightBox.add(heightLabel);
-        heightBox.add(Box.createVerticalStrut(5));
-        heightBox.add(heightField);
+        fieldsPanel.add(createInputBox("רוחב", widthField));
+        fieldsPanel.add(createInputBox("גובה", heightField));
 
-        fieldsPanel.add(widthBox);
-        fieldsPanel.add(heightBox);
+        return fieldsPanel;
+    }
 
-        card.add(fieldsPanel);
-        card.add(Box.createVerticalStrut(25));
+    private JPanel createInputBox(String labelText, JTextField textField) {
+        JPanel box = new JPanel();
+        box.setLayout(new BoxLayout(box, BoxLayout.Y_AXIS));
+        box.setBackground(CARD_BG);
 
-        // כפתור יצירת המבוך משתמש עכשיו בשדה המחלקה
+        JLabel label = new JLabel(labelText);
+        label.setFont(Main.LABEL_FONT);
+        label.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        box.add(label);
+        box.add(Box.createVerticalStrut(5));
+        box.add(textField);
+
+        return box;
+    }
+
+    private JButton createGetMazeButton() {
         this.getMazeButton = new JButton("צור מבוך חדש");
         Main.styleButton(this.getMazeButton, Main.DEEP_PINK);
         this.getMazeButton.setFont(new Font("Segoe UI", Font.BOLD, 15));
         this.getMazeButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        // מוסתר כברירת מחדל כדי למנוע קריסה (עד שהצבעים יגיעו מהשרת)
         this.getMazeButton.setVisible(false);
+        this.getMazeButton.setEnabled(false);
+        this.getMazeButton.addActionListener(e -> handleGetMazeClick());
 
-        this.getMazeButton.addActionListener(e -> {
-            this.errorLabel.setText(" ");
+        return this.getMazeButton;
+    }
 
-            this.mazeWidth = validateInput(widthField, "הרוחב");
-            this.mazeHeight = validateInput(heightField, "הגובה");
-
-            widthField.setText(String.valueOf(this.mazeWidth));
-            heightField.setText(String.valueOf(this.mazeHeight));
-
-            fetchAndReadMazeImage();
-        });
-
-        card.add(this.getMazeButton);
-        card.add(Box.createVerticalStrut(15));
-
+    private JLabel createErrorLabel() {
         this.errorLabel = new JLabel(" ", JLabel.CENTER);
         this.errorLabel.setForeground(Main.ERROR_COLOR);
         this.errorLabel.setFont(Main.LABEL_FONT);
         this.errorLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        card.add(errorLabel);
-        this.add(card);
+        return this.errorLabel;
+    }
+
+    private void handleGetMazeClick() {
+        this.errorLabel.setText(" ");
+
+        int checkedWidth = validateInput(widthField, "הרוחב");
+        int checkedHeight = validateInput(heightField, "הגובה");
+
+        boolean hasError = checkedWidth == -1 || checkedHeight == -1;
+
+        if (checkedWidth == -1) {
+            checkedWidth = DEFAULT_MAZE_SIZE;
+            widthField.setText(String.valueOf(DEFAULT_MAZE_SIZE));
+        }
+
+        if (checkedHeight == -1) {
+            checkedHeight = DEFAULT_MAZE_SIZE;
+            heightField.setText(String.valueOf(DEFAULT_MAZE_SIZE));
+        }
+
+        this.mazeWidth = checkedWidth;
+        this.mazeHeight = checkedHeight;
+
+        if (hasError) {
+            waitTwoSecondsAndLoadMaze();
+        } else {
+            fetchAndReadMazeImage();
+        }
+    }
+
+    private void waitTwoSecondsAndLoadMaze() {
+        getMazeButton.setEnabled(false);
+
+        Timer timer = new Timer(2000, event -> {
+            getMazeButton.setEnabled(true);
+            errorLabel.setText(" ");
+            fetchAndReadMazeImage();
+        });
+
+        timer.setRepeats(false);
+        timer.start();
     }
 
     private void loadServerConfig() {
         this.configLabel.setText("מתחבר לשרת ומביא הגדרות...");
+        this.getMazeButton.setVisible(false);
+        this.getMazeButton.setEnabled(false);
 
         new Thread(() -> {
             try {
                 JSONObject dataAsJson = apiService.fetchRenderConfig();
-
-                this.wallColor = dataAsJson.getString("wallCellColor");
-                this.pathColor = dataAsJson.getString("pathColor");
-                this.drawGrid = dataAsJson.getBoolean("drawGrid");
-                this.gridColor = dataAsJson.getString("gridColor");
-                this.animationDelay = dataAsJson.getInt("animationDelayMs");
-
-                String configText = String.format(
-                        "צבע הקירות: %s | צבע הנתיב: %s | האם יהיו קווי רשת? %b | צבע קווי הרשת: %s | זמן השהיה: %d ms",
-                        this.wallColor,
-                        this.pathColor,
-                        this.drawGrid,
-                        this.gridColor,
-                        this.animationDelay
-                );
+                saveConfigData(dataAsJson);
 
                 SwingUtilities.invokeLater(() -> {
-                    this.configLabel.setText(configText);
-                    // הנתונים הגיעו בהצלחה - עכשיו אפשר להציג את הכפתור בבטחה!
+                    this.configLabel.setText(createConfigText());
                     this.getMazeButton.setVisible(true);
-                    this.revalidate();
-                    this.repaint();
+                    this.getMazeButton.setEnabled(true);
+                    revalidate();
+                    repaint();
                 });
 
             } catch (Exception ex) {
-                SwingUtilities.invokeLater(() -> this.configLabel.setText("שגיאה בהבאת נתונים מהשרת."));
+                SwingUtilities.invokeLater(() -> {
+                    this.configLabel.setText("שגיאה בהבאת נתונים מהשרת.");
+                    this.getMazeButton.setVisible(false);
+                    this.getMazeButton.setEnabled(false);
+                });
+
                 ex.printStackTrace();
             }
         }).start();
+    }
+
+    private void saveConfigData(JSONObject dataAsJson) {
+        this.wallColor = dataAsJson.getString("wallCellColor");
+        this.pathColor = dataAsJson.getString("pathColor");
+        this.drawGrid = dataAsJson.getBoolean("drawGrid");
+        this.gridColor = dataAsJson.getString("gridColor");
+        this.animationDelay = dataAsJson.getInt("animationDelayMs");
+    }
+
+    private String createConfigText() {
+        return String.format(
+                "צבע הקירות: %s | צבע הנתיב: %s | האם יהיו קווי רשת? %b | צבע קווי הרשת: %s | זמן השהיה: %d ms",
+                this.wallColor,
+                this.pathColor,
+                this.drawGrid,
+                this.gridColor,
+                this.animationDelay
+        );
     }
 
     private void fetchAndReadMazeImage() {
         this.errorLabel.setText("טוען וקורא מבוך מהשרת...");
+        this.getMazeButton.setEnabled(false);
 
         new Thread(() -> {
             try {
                 BufferedImage mazeImage = apiService.fetchMazeImage(mazeWidth, mazeHeight);
-
                 this.mazePixel = convertImageToBooleanMatrix(mazeImage);
 
-                // אפשר למחוק או להפוך להערה אם המבוך כבר מופיע בתוכנית
-                // openMazeImageInBrowser(mazeImage);
-
-                SwingUtilities.invokeLater(() -> {
-                    this.errorLabel.setText("המבוך נקרא בהצלחה מהשרת.");
-
-                    // הוספנו את MainSettingPanel.this כפרמטר הראשון כדי להתאים לבנאי של MazePanel!
-                    MazePanel mazePanel = new MazePanel(
-                            MainSettingPanel.this,
-                            this.mazePixel,
-                            Color.decode(this.wallColor),
-                            Color.decode(this.pathColor),
-                            this.drawGrid,
-                            Color.decode(this.gridColor),
-                            this.animationDelay
-                    );
-
-                    JFrame mainFrame = (JFrame) SwingUtilities.getWindowAncestor(MainSettingPanel.this);
-
-                    if (mainFrame != null) {
-                        mainFrame.setContentPane(mazePanel);
-                        mainFrame.revalidate();
-                        mainFrame.repaint();
-                    }
-                });
+                SwingUtilities.invokeLater(this::showMazePanel);
 
             } catch (Exception ex) {
-                SwingUtilities.invokeLater(() ->
-                        this.errorLabel.setText("שגיאה: לא הצלחנו לקרוא את תמונת המבוך.")
-                );
+                SwingUtilities.invokeLater(() -> {
+                    this.errorLabel.setText("שגיאה: לא הצלחנו לקרוא את תמונת המבוך.");
+                    this.getMazeButton.setEnabled(true);
+                });
+
                 ex.printStackTrace();
             }
         }).start();
     }
 
-    private void openMazeImageInBrowser(BufferedImage mazeImage) throws Exception {
-        File mazeFile = File.createTempFile("maze-", ".png");
-        ImageIO.write(mazeImage, "png", mazeFile);
-        Desktop.getDesktop().browse(mazeFile.toURI());
+    private void showMazePanel() {
+        MazePanel mazePanel = new MazePanel(
+                MainSettingPanel.this,
+                this.mazePixel,
+                decodeColor(this.wallColor, Color.BLACK),
+                decodeColor(this.pathColor, Color.WHITE),
+                this.drawGrid,
+                decodeColor(this.gridColor, Color.GRAY),
+                this.animationDelay
+        );
+
+        Main.showPanel(mazePanel);
     }
 
-    // הפונקציה החסינה שמתקנת שקיפויות ומונעת באגים!
     private boolean[][] convertImageToBooleanMatrix(BufferedImage mazeImage) {
-        int w = mazeImage.getWidth();
-        int h = mazeImage.getHeight();
+        int imageWidth = mazeImage.getWidth();
+        int imageHeight = mazeImage.getHeight();
 
-        BufferedImage normalizedImg = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
-        Graphics2D g2d = normalizedImg.createGraphics();
-        g2d.setColor(Color.WHITE);
-        g2d.fillRect(0, 0, w, h);
-        g2d.drawImage(mazeImage, 0, 0, null);
-        g2d.dispose();
+        int rows = this.mazeHeight;
+        int cols = this.mazeWidth;
 
-        boolean[][] matrix = new boolean[h][w];
+        boolean[][] matrix = new boolean[rows][cols];
 
-        for (int y = 0; y < h; y++) {
-            for (int x = 0; x < w; x++) {
-                int rgb = normalizedImg.getRGB(x, y);
-                Color pixelColor = new Color(rgb);
+        double blockWidth = (double) imageWidth / cols;
+        double blockHeight = (double) imageHeight / rows;
 
-                if (pixelColor.getRed() > 240 && pixelColor.getGreen() > 240 && pixelColor.getBlue() > 240) {
-                    matrix[y][x] = true;
+        int pathCells = 0;
+        int wallCells = 0;
+
+        for (int row = 0; row < rows; row++) {
+            for (int col = 0; col < cols; col++) {
+                boolean isPath = isPathBlock(mazeImage, row, col, blockWidth, blockHeight);
+                matrix[row][col] = isPath;
+
+                if (isPath) {
+                    pathCells++;
                 } else {
-                    matrix[y][x] = false;
+                    wallCells++;
                 }
             }
         }
+
+        printMazeData(imageWidth, imageHeight, matrix, pathCells, wallCells);
+
         return matrix;
+    }
+
+    private boolean isPathBlock(
+            BufferedImage mazeImage,
+            int row,
+            int col,
+            double blockWidth,
+            double blockHeight
+    ) {
+        int imageWidth = mazeImage.getWidth();
+        int imageHeight = mazeImage.getHeight();
+
+        int startX = (int) Math.floor(col * blockWidth);
+        int endX = (int) Math.floor((col + 1) * blockWidth);
+        int startY = (int) Math.floor(row * blockHeight);
+        int endY = (int) Math.floor((row + 1) * blockHeight);
+
+        startX = limitToRange(startX, 0, imageWidth - 1);
+        startY = limitToRange(startY, 0, imageHeight - 1);
+        endX = limitToRange(endX, startX + 1, imageWidth);
+        endY = limitToRange(endY, startY + 1, imageHeight);
+
+        int whitePixels = 0;
+        int wallPixels = 0;
+
+        for (int y = startY; y < endY; y++) {
+            for (int x = startX; x < endX; x++) {
+                Color pixelColor = new Color(mazeImage.getRGB(x, y), true);
+
+                if (isWhite(pixelColor)) {
+                    whitePixels++;
+                } else {
+                    wallPixels++;
+                }
+            }
+        }
+
+        return whitePixels >= wallPixels;
+    }
+
+    private int limitToRange(int value, int minValue, int maxValue) {
+        if (value < minValue) {
+            return minValue;
+        }
+
+        if (value > maxValue) {
+            return maxValue;
+        }
+
+        return value;
+    }
+    // רק לבדיקה שהגדלים תקינים
+    private void printMazeData(int imageWidth, int imageHeight, boolean[][] matrix, int pathCells, int wallCells) {
+        System.out.println("requested maze width = " + this.mazeWidth);
+        System.out.println("requested maze height = " + this.mazeHeight);
+        System.out.println("image width = " + imageWidth);
+        System.out.println("image height = " + imageHeight);
+        System.out.println("matrix rows = " + matrix.length);
+        System.out.println("matrix cols = " + matrix[0].length);
+        System.out.println("path cells = " + pathCells);
+        System.out.println("wall cells = " + wallCells);
+    }
+
+    private boolean isWhite(Color color) {
+        return color.getRed() > 230
+                && color.getGreen() > 230
+                && color.getBlue() > 230;
+    }
+
+    private Color decodeColor(String colorText, Color defaultColor) {
+        try {
+            return Color.decode(colorText);
+        } catch (Exception e) {
+            return defaultColor;
+        }
     }
 
     private void styleTextField(JTextField textField) {
@@ -330,16 +465,24 @@ public class MainSettingPanel extends JPanel {
                             "). שונה ל-" + DEFAULT_MAZE_SIZE + "."
             );
 
-            return DEFAULT_MAZE_SIZE;
+            return -1;
 
         } catch (NumberFormatException e) {
             this.errorLabel.setText(
                     "שגיאה: הקלט בתוך " + fieldName +
-                            " אינו מספר חוקי! שונה ל-" + DEFAULT_MAZE_SIZE + "."
+                            " אינו מספר חוקי. שונה ל-" + DEFAULT_MAZE_SIZE + "."
             );
 
-            return DEFAULT_MAZE_SIZE;
+            return -1;
         }
+    }
+
+    public void prepareForNewMaze() {
+        this.errorLabel.setText(" ");
+        this.getMazeButton.setVisible(true);
+        this.getMazeButton.setEnabled(true);
+        this.revalidate();
+        this.repaint();
     }
 
     public int getMazeWidth() {

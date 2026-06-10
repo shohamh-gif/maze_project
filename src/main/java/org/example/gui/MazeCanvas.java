@@ -38,72 +38,57 @@ public class MazeCanvas extends JPanel {
             return;
         }
 
+        Graphics2D g2 = (Graphics2D) g;
+
         int rows = mazeMatrix.length;
         int cols = mazeMatrix[0].length;
 
         int panelWidth = getWidth();
         int panelHeight = getHeight();
 
-        double cellSize = Math.min(
-                (double) panelWidth / cols,
-                (double) panelHeight / rows
+        int cellSize = Math.min(
+                panelWidth / cols,
+                panelHeight / rows
         );
 
-        if (cellSize <= 0) {
+        if (cellSize < 1) {
             return;
         }
 
-        double mazeWidth = cols * cellSize;
-        double mazeHeight = rows * cellSize;
+        int mazeWidth = cols * cellSize;
+        int mazeHeight = rows * cellSize;
 
-        double startX = (panelWidth - mazeWidth) / 2.0;
-        double startY = (panelHeight - mazeHeight) / 2.0;
+        int startX = (panelWidth - mazeWidth) / 2;
+        int startY = (panelHeight - mazeHeight) / 2;
 
-        for (int y = 0; y < rows; y++) {
-            for (int x = 0; x < cols; x++) {
+        for (int row = 0; row < rows; row++) {
+            for (int col = 0; col < cols; col++) {
 
-                if (mazeMatrix[y][x]) {
-                    g.setColor(Color.WHITE);
+                int x = startX + col * cellSize;
+                int y = startY + row * cellSize;
+
+                if (mazeMatrix[row][col]) {
+                    g2.setColor(Color.WHITE);
                 } else {
-                    g.setColor(wallColor);
+                    g2.setColor(wallColor);
                 }
 
-                // --- התיקון לקווים הלבנים (עיגול מתמטי מושלם) ---
-                // חישוב הפיקסל המדויק של תחילת המשבצת וסוף המשבצת (ללא חורים)
-                int pixelX = (int) Math.round(startX + x * cellSize);
-                int pixelY = (int) Math.round(startY + y * cellSize);
-                int nextX = (int) Math.round(startX + (x + 1) * cellSize);
-                int nextY = (int) Math.round(startY + (y + 1) * cellSize);
-
-                int width = nextX - pixelX;
-                int height = nextY - pixelY;
-
-                g.fillRect(pixelX, pixelY, width, height);
+                g2.fillRect(x, y, cellSize, cellSize);
             }
         }
 
-        // ציור הרשת מותאם גם הוא לעיגול המדויק
-        if (drawGrid && cellSize >= 4) {
-            g.setColor(gridColor);
+        if (drawGrid) {
+            g2.setColor(gridColor);
+            g2.setStroke(new BasicStroke(1));
 
-            for (int x = 0; x <= cols; x++) {
-                int lineX = (int) Math.round(startX + x * cellSize);
-                g.drawLine(
-                        lineX,
-                        (int) Math.round(startY),
-                        lineX,
-                        (int) Math.round(startY + mazeHeight)
-                );
+            for (int col = 0; col <= cols; col++) {
+                int x = startX + col * cellSize;
+                g2.drawLine(x, startY, x, startY + mazeHeight);
             }
 
-            for (int y = 0; y <= rows; y++) {
-                int lineY = (int) Math.round(startY + y * cellSize);
-                g.drawLine(
-                        (int) Math.round(startX),
-                        lineY,
-                        (int) Math.round(startX + mazeWidth),
-                        lineY
-                );
+            for (int row = 0; row <= rows; row++) {
+                int y = startY + row * cellSize;
+                g2.drawLine(startX, y, startX + mazeWidth, y);
             }
         }
     }
