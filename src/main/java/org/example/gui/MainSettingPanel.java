@@ -10,8 +10,6 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.util.Scanner;
-
 
 public class MainSettingPanel extends JPanel {
 
@@ -25,11 +23,13 @@ public class MainSettingPanel extends JPanel {
     private static final Color WINDOW_BG = new Color(253, 242, 244);
     private static final Color CARD_BG = Color.WHITE;
 
-
     private JTextField widthField;
     private JTextField heightField;
     private JLabel configLabel;
     private JLabel errorLabel;
+
+    // הפכנו את הכפתור לשדה מחלקה כדי שנוכל להסתיר/להציג אותו
+    private JButton getMazeButton;
 
     private String wallColor;
     private String pathColor;
@@ -40,108 +40,65 @@ public class MainSettingPanel extends JPanel {
     private int mazeHeight;
     private boolean[][] mazePixel;
 
-
     private final MazeApiService apiService;
 
     public MainSettingPanel(int x, int y, int windowWidth, int windowHeight) {
         this.apiService = new MazeApiService();
 
-        // אתחול ערכי ברירת מחדל לרוחב ולגובה המבוך
         this.mazeWidth = DEFAULT_MAZE_SIZE;
         this.mazeHeight = DEFAULT_MAZE_SIZE;
 
-        // קובע את המיקום והגודל של הפאנל בתוך החלון
         this.setBounds(x, y, windowWidth, windowHeight);
-
-        // קובע צבע רקע לכל הפאנל
         this.setBackground(WINDOW_BG);
-
-        // מנהל פריסה שממקם את הכרטיס במרכז הפאנל הראשי
         this.setLayout(new GridBagLayout());
 
-        // חישוב גדלים לפי גודל החלון, כדי לשמור על מראה מסודר
         int cardWidth = windowWidth - 90;
         int cardHeight = 520;
         int serverBoxWidth = cardWidth - 100;
         int serverBoxHeight = 105;
         int configLabelWidth = serverBoxWidth - 40;
 
-        // יצירת הכרטיס הלבן המרכזי
         JPanel card = new JPanel();
         card.setBackground(CARD_BG);
-
-        // קביעת גודל קבוע לכרטיס
-        // preferred הוא הגודל המבוקש
-        // maximum מונע התרחבות
-        // minimum מונע כיווץ
         card.setPreferredSize(new Dimension(cardWidth, cardHeight));
         card.setMaximumSize(new Dimension(cardWidth, cardHeight));
         card.setMinimumSize(new Dimension(cardWidth, cardHeight));
-
-        // BoxLayout מסדר את רכיבי הכרטיס מלמעלה למטה
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-
-        // יצירת מסגרת ורודה לכרטיס עם רווח פנימי
-        // המסגרת החיצונית נותנת גבול
-        // ה EmptyBorder יוצר מרווח בין תוכן הכרטיס לקצוות
         card.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(243, 213, 220), 1),
                 new EmptyBorder(30, 40, 30, 40)
         ));
 
-        // יצירת כותרת ראשית
         JLabel titleLabel = new JLabel("הגדרות ליצירת מבוך");
         titleLabel.setFont(TITLE_FONT);
         titleLabel.setForeground(Main.DEEP_PINK);
-
-        // ממרכז את הכותרת בתוך BoxLayout
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-
         card.add(titleLabel);
-
-        // רווח אנכי בין הכותרת לחלק הבא
         card.add(Box.createVerticalStrut(20));
 
-        // יצירת קופסה פנימית להצגת הגדרות מהשרת
         JPanel serverBox = new JPanel();
-
-        // סידור הטקסט והכפתור אחד מתחת לשני
         serverBox.setLayout(new BoxLayout(serverBox, BoxLayout.Y_AXIS));
-
         serverBox.setBackground(new Color(255, 247, 248));
-
-        // מסגרת ורודה ורווח פנימי לקופסת השרת
         serverBox.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(248, 222, 228), 1),
                 new EmptyBorder(12, 15, 12, 15)
         ));
-
-        // ממרכז את קופסת השרת בתוך הכרטיס
         serverBox.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        // קביעת גודל קבוע לקופסת השרת
-        // כך טקסט ארוך לא ידחוף את גבולות הכרטיס
         serverBox.setPreferredSize(new Dimension(serverBoxWidth, serverBoxHeight));
         serverBox.setMaximumSize(new Dimension(serverBoxWidth, serverBoxHeight));
         serverBox.setMinimumSize(new Dimension(serverBoxWidth, serverBoxHeight));
 
-        // תווית שתציג את הגדרות העיצוב שחוזרות מהשרת
         this.configLabel = new JLabel("הגדרות העיצוב מהשרת יופיעו כאן לאחר טעינה", JLabel.CENTER);
         this.configLabel.setFont(MAIN_FONT);
         this.configLabel.setForeground(Main.TEXT_DARK);
         this.configLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        // הגבלת רוחב התווית, כדי שהיא תישאר בתוך קופסת השרת
         this.configLabel.setPreferredSize(new Dimension(configLabelWidth, 30));
         this.configLabel.setMaximumSize(new Dimension(configLabelWidth, 30));
         this.configLabel.setMinimumSize(new Dimension(configLabelWidth, 30));
 
-        // כפתור מקומי, כי אין צורך לגשת אליו מפונקציות אחרות
         JButton refreshButton = new JButton("טען הגדרות שרת");
         Main.styleButton(refreshButton, Main.SOFT_PINK);
         refreshButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        // בלחיצה על הכפתור נטענות הגדרות מהשרת
         refreshButton.addActionListener(e -> loadServerConfig());
 
         serverBox.add(configLabel);
@@ -151,7 +108,6 @@ public class MainSettingPanel extends JPanel {
         card.add(serverBox);
         card.add(Box.createVerticalStrut(25));
 
-        // כותרת לאזור הקלט של גודל המבוך
         JLabel sizeTitle = new JLabel("קביעת גודל המבוך (בין 5 ל-100):");
         sizeTitle.setFont(Main.LABEL_FONT);
         sizeTitle.setForeground(Main.TEXT_DARK);
@@ -160,11 +116,9 @@ public class MainSettingPanel extends JPanel {
         card.add(sizeTitle);
         card.add(Box.createVerticalStrut(10));
 
-        // פאנל שמסדר את שדות הרוחב והגובה אחד ליד השני
         JPanel fieldsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 30, 0));
         fieldsPanel.setBackground(CARD_BG);
 
-        // קופסה לשדה הרוחב, הכותרת מעל השדה
         JPanel widthBox = new JPanel();
         widthBox.setLayout(new BoxLayout(widthBox, BoxLayout.Y_AXIS));
         widthBox.setBackground(CARD_BG);
@@ -173,7 +127,6 @@ public class MainSettingPanel extends JPanel {
         widthLabel.setFont(Main.LABEL_FONT);
         widthLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // שדה קלט שמתחיל מערך ברירת המחדל
         this.widthField = new JTextField(String.valueOf(mazeWidth), 5);
         styleTextField(widthField);
 
@@ -181,7 +134,6 @@ public class MainSettingPanel extends JPanel {
         widthBox.add(Box.createVerticalStrut(5));
         widthBox.add(widthField);
 
-        // קופסה לשדה הגובה, הכותרת מעל השדה
         JPanel heightBox = new JPanel();
         heightBox.setLayout(new BoxLayout(heightBox, BoxLayout.Y_AXIS));
         heightBox.setBackground(CARD_BG);
@@ -190,7 +142,6 @@ public class MainSettingPanel extends JPanel {
         heightLabel.setFont(Main.LABEL_FONT);
         heightLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // שדה קלט שמתחיל מערך ברירת המחדל
         this.heightField = new JTextField(String.valueOf(mazeHeight), 5);
         styleTextField(heightField);
 
@@ -198,47 +149,42 @@ public class MainSettingPanel extends JPanel {
         heightBox.add(Box.createVerticalStrut(5));
         heightBox.add(heightField);
 
-        // הוספת שתי הקופסאות לפאנל השדות
         fieldsPanel.add(widthBox);
         fieldsPanel.add(heightBox);
 
         card.add(fieldsPanel);
         card.add(Box.createVerticalStrut(25));
 
-        // כפתור מקומי ליצירת מבוך
-        JButton getMazeButton = new JButton("צור מבוך חדש");
-        Main.styleButton(getMazeButton, Main.DEEP_PINK);
-        getMazeButton.setFont(new Font("Segoe UI", Font.BOLD, 15));
-        getMazeButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        // כפתור יצירת המבוך משתמש עכשיו בשדה המחלקה
+        this.getMazeButton = new JButton("צור מבוך חדש");
+        Main.styleButton(this.getMazeButton, Main.DEEP_PINK);
+        this.getMazeButton.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        this.getMazeButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // בלחיצה, הקלט נבדק ונשמר רק אם הוא תקין
-        getMazeButton.addActionListener(e -> {
+        // מוסתר כברירת מחדל כדי למנוע קריסה (עד שהצבעים יגיעו מהשרת)
+        this.getMazeButton.setVisible(false);
+
+        this.getMazeButton.addActionListener(e -> {
             this.errorLabel.setText(" ");
 
             this.mazeWidth = validateInput(widthField, "הרוחב");
             this.mazeHeight = validateInput(heightField, "הגובה");
 
-            // עדכון השדות לפי הערכים התקינים שנשמרו
             widthField.setText(String.valueOf(this.mazeWidth));
             heightField.setText(String.valueOf(this.mazeHeight));
 
-
             fetchAndReadMazeImage();
-
         });
 
-        card.add(getMazeButton);
+        card.add(this.getMazeButton);
         card.add(Box.createVerticalStrut(15));
 
-        // תווית להצגת הודעות שגיאה למשתמש
         this.errorLabel = new JLabel(" ", JLabel.CENTER);
         this.errorLabel.setForeground(Main.ERROR_COLOR);
         this.errorLabel.setFont(Main.LABEL_FONT);
         this.errorLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         card.add(errorLabel);
-
-        // הוספת הכרטיס לפאנל הראשי
         this.add(card);
     }
 
@@ -264,7 +210,13 @@ public class MainSettingPanel extends JPanel {
                         this.animationDelay
                 );
 
-                SwingUtilities.invokeLater(() -> this.configLabel.setText(configText));
+                SwingUtilities.invokeLater(() -> {
+                    this.configLabel.setText(configText);
+                    // הנתונים הגיעו בהצלחה - עכשיו אפשר להציג את הכפתור בבטחה!
+                    this.getMazeButton.setVisible(true);
+                    this.revalidate();
+                    this.repaint();
+                });
 
             } catch (Exception ex) {
                 SwingUtilities.invokeLater(() -> this.configLabel.setText("שגיאה בהבאת נתונים מהשרת."));
@@ -273,8 +225,6 @@ public class MainSettingPanel extends JPanel {
         }).start();
     }
 
-    // שולחת בקשה לשרת, מקבלת תמונת מבוך, ואז קוראת את הפיקסלים שלה
-// שולחת בקשה לשרת, מקבלת תמונת מבוך, ממירה למערך ומציגה את התמונה בדפדפן
     private void fetchAndReadMazeImage() {
         this.errorLabel.setText("טוען וקורא מבוך מהשרת...");
 
@@ -284,15 +234,15 @@ public class MainSettingPanel extends JPanel {
 
                 this.mazePixel = convertImageToBooleanMatrix(mazeImage);
 
-                openMazeImageInBrowser(mazeImage); //לזכור להוריד אחרי שנסיים
+                // אפשר למחוק או להפוך להערה אם המבוך כבר מופיע בתוכנית
+                // openMazeImageInBrowser(mazeImage);
 
                 SwingUtilities.invokeLater(() -> {
                     this.errorLabel.setText("המבוך נקרא בהצלחה מהשרת.");
 
-                    // 2. יצירת לוח הציור של המבוך
-                    // שימו לב: אנחנו מעבירים את mazePixel שהרגע קיבלנו,
-                    // ואת שאר הצבעים שאספנו בשלב 8
+                    // הוספנו את MainSettingPanel.this כפרמטר הראשון כדי להתאים לבנאי של MazePanel!
                     MazePanel mazePanel = new MazePanel(
+                            MainSettingPanel.this,
                             this.mazePixel,
                             Color.decode(this.wallColor),
                             Color.decode(this.pathColor),
@@ -300,64 +250,58 @@ public class MainSettingPanel extends JPanel {
                             Color.decode(this.gridColor),
                             this.animationDelay
                     );
+
                     JFrame mainFrame = (JFrame) SwingUtilities.getWindowAncestor(MainSettingPanel.this);
 
                     if (mainFrame != null) {
-                        // הנה הקסם: החלפת כל תוכן החלון בפאנל המבוך החדש בשורה אחת!
                         mainFrame.setContentPane(mazePanel);
-
-                        // רענון חובה של החלון כדי שיציג את השינוי
                         mainFrame.revalidate();
                         mainFrame.repaint();
                     }
-
                 });
-
 
             } catch (Exception ex) {
                 SwingUtilities.invokeLater(() ->
                         this.errorLabel.setText("שגיאה: לא הצלחנו לקרוא את תמונת המבוך.")
                 );
-
                 ex.printStackTrace();
             }
         }).start();
     }
 
-    // שומרת את תמונת המבוך כקובץ זמני ופותחת אותה בדפדפן ברירת המחדל
     private void openMazeImageInBrowser(BufferedImage mazeImage) throws Exception {
         File mazeFile = File.createTempFile("maze-", ".png");
-
         ImageIO.write(mazeImage, "png", mazeFile);
-
         Desktop.getDesktop().browse(mazeFile.toURI());
     }
 
-    // ממירה את תמונת המבוך למערך דו ממדי של true ו false
+    // הפונקציה החסינה שמתקנת שקיפויות ומונעת באגים!
     private boolean[][] convertImageToBooleanMatrix(BufferedImage mazeImage) {
-        int imageWidth = mazeImage.getWidth();
-        int imageHeight = mazeImage.getHeight();
+        int w = mazeImage.getWidth();
+        int h = mazeImage.getHeight();
 
-        boolean[][] matrix = new boolean[imageHeight][imageWidth];
+        BufferedImage normalizedImg = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g2d = normalizedImg.createGraphics();
+        g2d.setColor(Color.WHITE);
+        g2d.fillRect(0, 0, w, h);
+        g2d.drawImage(mazeImage, 0, 0, null);
+        g2d.dispose();
 
-        for (int y = 0; y < imageHeight; y++) {
-            for (int x = 0; x < imageWidth; x++) {
-                int currentRgb = mazeImage.getRGB(x, y);
-                Color pixelColor = new Color(currentRgb);
-                matrix[y][x] = isWhite(pixelColor);
-                System.out.print(matrix[y][x] + "  ");
+        boolean[][] matrix = new boolean[h][w];
+
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                int rgb = normalizedImg.getRGB(x, y);
+                Color pixelColor = new Color(rgb);
+
+                if (pixelColor.getRed() > 240 && pixelColor.getGreen() > 240 && pixelColor.getBlue() > 240) {
+                    matrix[y][x] = true;
+                } else {
+                    matrix[y][x] = false;
+                }
             }
-            System.out.println();
         }
-
         return matrix;
-    }
-
-    // בודקת אם צבע הפיקסל לבן
-    private boolean isWhite(Color color) {
-        return color.getRed() == 255 &&
-                color.getGreen() == 255 &&
-                color.getBlue() == 255;
     }
 
     private void styleTextField(JTextField textField) {
