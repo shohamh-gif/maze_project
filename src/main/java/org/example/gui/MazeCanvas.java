@@ -26,96 +26,69 @@ public class MazeCanvas extends JPanel {
         this.drawGrid = drawGrid;
         this.gridColor = gridColor;
 
-        this.setBackground(Main.LIGHT_PINK);
-        this.setOpaque(true);
+        setBackground(Main.LIGHT_PINK);
+        setOpaque(true);
     }
 
-    public void paintComponent(Graphics g) {
+    @Override
+    protected void paintComponent(Graphics g) {
         super.paintComponent(g);
 
-        if (this.mazeMatrix == null || this.mazeMatrix.length == 0 || this.mazeMatrix[0].length == 0) {
+        if (mazeMatrix == null || mazeMatrix.length == 0 || mazeMatrix[0].length == 0) {
             return;
         }
-
-        int rows = this.mazeMatrix.length;
-        int cols = this.mazeMatrix[0].length;
-
-        int panelWidth = this.getWidth();
-        int panelHeight = this.getHeight();
-
-        double cellSize = Math.min(
-                (double) panelWidth / cols,
-                (double) panelHeight / rows
-        );
-
-        if (cellSize <= 0) {
-            return;
-        }
-
-        double mazeWidth = cols * cellSize;
-        double mazeHeight = rows * cellSize;
-
-        double startX = (panelWidth - mazeWidth) / 2.0;
-        double startY = (panelHeight - mazeHeight) / 2.0;
 
         Graphics2D g2 = (Graphics2D) g;
 
-        // --- שלב 1: צביעת התאים (fillRect) - עם החלקת עקומות כבויה! ---
-        // זה התיקון הקריטי: אנחנו מכבים את ה-AA כדי שהריבועים יהיו חדים ויידבקו מושלם.
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+        int rows = mazeMatrix.length;
+        int cols = mazeMatrix[0].length;
 
-        for (int y = 0; y < rows; y++) {
-            for (int x = 0; x < cols; x++) {
+        int panelWidth = getWidth();
+        int panelHeight = getHeight();
 
-                if (this.mazeMatrix[y][x]) {
+        int cellSize = Math.min(
+                panelWidth / cols,
+                panelHeight / rows
+        );
+
+        if (cellSize < 1) {
+            return;
+        }
+
+        int mazeWidth = cols * cellSize;
+        int mazeHeight = rows * cellSize;
+
+        int startX = (panelWidth - mazeWidth) / 2;
+        int startY = (panelHeight - mazeHeight) / 2;
+
+        for (int row = 0; row < rows; row++) {
+            for (int col = 0; col < cols; col++) {
+
+                int x = startX + col * cellSize;
+                int y = startY + row * cellSize;
+
+                if (mazeMatrix[row][col]) {
                     g2.setColor(Color.WHITE);
                 } else {
-                    g2.setColor(this.wallColor);
+                    g2.setColor(wallColor);
                 }
 
-                int pixelX = (int) Math.round(startX + x * cellSize);
-                int pixelY = (int) Math.round(startY + y * cellSize);
-                int nextX = (int) Math.round(startX + (x + 1) * cellSize);
-                int nextY = (int) Math.round(startY + (y + 1) * cellSize);
-
-                int width = nextX - pixelX;
-                int height = nextY - pixelY;
-
-                // צביעת התא (הם יידבקו אחד לשני בצורה מושלמת, בלי זיגזגים)
-                g2.fillRect(pixelX, pixelY, width, height);
+                g2.fillRect(x, y, cellSize, cellSize);
             }
         }
 
-        // --- שלב 2: ציור הרשת - עם החלקת עקומות מופעלת! ---
-        boolean shouldDrawGrid = this.drawGrid && cellSize >= 2;
+        if (drawGrid) {
+            g2.setColor(gridColor);
+            g2.setStroke(new BasicStroke(1));
 
-        if (shouldDrawGrid) {
-            // עכשיו, ורק עכשיו, אנחנו מדליקים את ה-AA כדי לקבל קווים דקים ויפים.
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-            g2.setColor(this.gridColor);
-            g2.setStroke(new BasicStroke(0.5f)); // העובי הדק והיפה שרצינו
-
-            // ציור קווים אנכיים (מלמעלה למטה)
-            for (int x = 0; x <= cols; x++) {
-                int lineX = (int) Math.round(startX + x * cellSize);
-                g2.drawLine(
-                        lineX,
-                        (int) Math.round(startY),
-                        lineX,
-                        (int) Math.round(startY + mazeHeight)
-                );
+            for (int col = 0; col <= cols; col++) {
+                int x = startX + col * cellSize;
+                g2.drawLine(x, startY, x, startY + mazeHeight);
             }
 
-            // ציור קווים אופקיים (משמאל לימין)
-            for (int y = 0; y <= rows; y++) {
-                int lineY = (int) Math.round(startY + y * cellSize);
-                g2.drawLine(
-                        (int) Math.round(startX),
-                        lineY,
-                        (int) Math.round(startX + mazeWidth),
-                        lineY
-                );
+            for (int row = 0; row <= rows; row++) {
+                int y = startY + row * cellSize;
+                g2.drawLine(startX, y, startX + mazeWidth, y);
             }
         }
     }
