@@ -230,17 +230,14 @@ public class MainSettingPanel extends JPanel {
 
         new Thread(() -> {
             try {
-                BufferedImage mazeImage = apiService.fetchMazeImage(mazeWidth, mazeHeight);
+                BufferedImage mazeImage = this.apiService.fetchMazeImage(this.mazeWidth, this.mazeHeight);
 
-                this.mazePixel = convertImageToBooleanMatrix(mazeImage);
-
-                // אפשר למחוק או להפוך להערה אם המבוך כבר מופיע בתוכנית
-                // openMazeImageInBrowser(mazeImage);
+                // שינוי קריטי: אנחנו מעבירים גם את הגודל הלוגי כדי ליצור מערך בגודל 30x30!
+                this.mazePixel = this.convertImageToBooleanMatrix(mazeImage, this.mazeWidth, this.mazeHeight);
 
                 SwingUtilities.invokeLater(() -> {
                     this.errorLabel.setText("המבוך נקרא בהצלחה מהשרת.");
 
-                    // הוספנו את MainSettingPanel.this כפרמטר הראשון כדי להתאים לבנאי של MazePanel!
                     MazePanel mazePanel = new MazePanel(
                             MainSettingPanel.this,
                             this.mazePixel,
@@ -267,6 +264,48 @@ public class MainSettingPanel extends JPanel {
                 ex.printStackTrace();
             }
         }).start();
+    }
+
+    // פונקציה משודרגת - מכווצת את התמונה המקורית למערך לוגי!
+    private boolean[][] convertImageToBooleanMatrix(BufferedImage mazeImage, int logicalWidth, int logicalHeight) {
+        int imgW = mazeImage.getWidth();
+        int imgH = mazeImage.getHeight();
+
+        BufferedImage normalizedImg = new BufferedImage(imgW, imgH, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g2d = normalizedImg.createGraphics();
+        g2d.setColor(Color.WHITE);
+        g2d.fillRect(0, 0, imgW, imgH);
+        g2d.drawImage(mazeImage, 0, 0, null);
+        g2d.dispose();
+
+        // יצירת מערך לפי הגודל של המבוך (למשל 30x30)
+        boolean[][] matrix = new boolean[logicalHeight][logicalWidth];
+
+        // חישוב הגודל של כל "בלוק" בתמונה הענקית
+        double blockW = (double) imgW / logicalWidth;
+        double blockH = (double) imgH / logicalHeight;
+
+        for (int y = 0; y < logicalHeight; y++) {
+            for (int x = 0; x < logicalWidth; x++) {
+                // לוקחים פיקסל מייצג ממרכז הבלוק
+                int pixelX = (int) (x * blockW + blockW / 2);
+                int pixelY = (int) (y * blockH + blockH / 2);
+
+                // הגנה מחריגה מגבולות התמונה
+                pixelX = Math.min(pixelX, imgW - 1);
+                pixelY = Math.min(pixelY, imgH - 1);
+
+                int rgb = normalizedImg.getRGB(pixelX, pixelY);
+                Color pixelColor = new Color(rgb);
+
+                if (pixelColor.getRed() > 240 && pixelColor.getGreen() > 240 && pixelColor.getBlue() > 240) {
+                    matrix[y][x] = true;
+                } else {
+                    matrix[y][x] = false;
+                }
+            }
+        }
+        return matrix;
     }
 
     private void openMazeImageInBrowser(BufferedImage mazeImage) throws Exception {

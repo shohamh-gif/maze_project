@@ -12,7 +12,6 @@ public class Main {
     public static final Color LIGHT_PINK = new Color(253, 242, 241);
     public static final Color DEEP_PINK = new Color(214, 51, 108);
     public static final Color SOFT_PINK = new Color(240, 98, 146);
-    public static final Color LIGHT_PINK = new Color( 253, 242, 244);
     public static final Color TEXT_DARK = new Color(60, 60, 60);
     public static final Color ERROR_COLOR = new Color(217, 48, 37);
 
