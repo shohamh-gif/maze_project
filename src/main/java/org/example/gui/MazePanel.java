@@ -1,7 +1,6 @@
 package org.example.gui;
 
 import org.example.Main;
-
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
@@ -24,15 +23,7 @@ public class MazePanel extends JPanel {
     private MazeCanvas mazeCanvas;
 
     // בנאי המחלקה - עכשיו הוא נקי וקצר, ורק קורא לפונקציית עזר שבונה את המסך
-    public MazePanel(
-            JPanel previousPanel,
-            boolean[][] mazeMatrix,
-            Color wallColor,
-            Color pathColor,
-            boolean drawGrid,
-            Color gridColor,
-            int animationDelay
-    ) {
+    public MazePanel(JPanel previousPanel, boolean[][] mazeMatrix, Color wallColor, Color pathColor, boolean drawGrid, Color gridColor, int animationDelay) {
         this.previousPanel = previousPanel;
         this.animationDelay = animationDelay;
         this.mazeMatrix = mazeMatrix;

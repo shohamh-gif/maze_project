@@ -16,13 +16,7 @@ public class MazeCanvas extends JPanel {
     private Color gridColor;
 
     // בנאי המקבל את הגדרות העיצוב ושומר אותן
-    public MazeCanvas(
-            boolean[][] mazeMatrix,
-            Color wallColor,
-            Color pathColor,
-            boolean drawGrid,
-            Color gridColor
-    ) {
+    public MazeCanvas(boolean[][] mazeMatrix, Color wallColor, Color pathColor, boolean drawGrid, Color gridColor) {
         this.mazeMatrix = mazeMatrix;
         this.wallColor = wallColor;
         this.pathColor = pathColor;
@@ -35,7 +29,7 @@ public class MazeCanvas extends JPanel {
 
     // הפונקציה המובנית ב-Java שמציירת הכל על המסך
     @Override
-    protected void paintComponent(Graphics g) {
+    public void paintComponent(Graphics g) {
         super.paintComponent(g);
 
         if (this.mazeMatrix == null || this.mazeMatrix.length == 0 || this.mazeMatrix[0].length == 0) {
@@ -103,7 +97,8 @@ public class MazeCanvas extends JPanel {
     }
 
     // פונקציית עזר: מציירת את רשת הקווים הדקיקה מעל המבוך
-    private void drawGridLines(Graphics2D g2, double startX, double startY, double cellSize, double mazeWidth, double mazeHeight, int rows, int cols) {
+    private void drawGridLines(Graphics2D g2, double startX, double startY, double cellSize, double mazeWidth,
+                               double mazeHeight, int rows, int cols) {
         // הדלקת החלקת עקומות: הופך את קווי הרשת לעדינים ודקים לעין
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2.setColor(this.gridColor);

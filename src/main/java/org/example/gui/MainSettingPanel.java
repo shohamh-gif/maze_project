@@ -327,7 +327,6 @@ public class MainSettingPanel extends JPanel {
                 decodeColor(this.gridColor, Color.GRAY),
                 this.animationDelay
         );
-
         Main.showPanel(mazePanel);
     }
 
@@ -358,9 +357,7 @@ public class MainSettingPanel extends JPanel {
                 }
             }
         }
-
         printMazeData(imageWidth, imageHeight, matrix, pathCells, wallCells);
-
         return matrix;
     }
 
@@ -369,8 +366,7 @@ public class MainSettingPanel extends JPanel {
             int row,
             int col,
             double blockWidth,
-            double blockHeight
-    ) {
+            double blockHeight) {
         int imageWidth = mazeImage.getWidth();
         int imageHeight = mazeImage.getHeight();
 
@@ -390,7 +386,6 @@ public class MainSettingPanel extends JPanel {
         for (int y = startY; y < endY; y++) {
             for (int x = startX; x < endX; x++) {
                 Color pixelColor = new Color(mazeImage.getRGB(x, y), true);
-
                 if (isWhite(pixelColor)) {
                     whitePixels++;
                 } else {
@@ -398,7 +393,6 @@ public class MainSettingPanel extends JPanel {
                 }
             }
         }
-
         return whitePixels >= wallPixels;
     }
 
@@ -406,13 +400,12 @@ public class MainSettingPanel extends JPanel {
         if (value < minValue) {
             return minValue;
         }
-
         if (value > maxValue) {
             return maxValue;
         }
-
         return value;
     }
+
     // רק לבדיקה שהגדלים תקינים
     private void printMazeData(int imageWidth, int imageHeight, boolean[][] matrix, int pathCells, int wallCells) {
         System.out.println("requested maze width = " + this.mazeWidth);
@@ -464,7 +457,6 @@ public class MainSettingPanel extends JPanel {
                             MIN_MAZE_SIZE + "-" + MAX_MAZE_SIZE +
                             "). שונה ל-" + DEFAULT_MAZE_SIZE + "."
             );
-
             return -1;
 
         } catch (NumberFormatException e) {
@@ -472,7 +464,6 @@ public class MainSettingPanel extends JPanel {
                     "שגיאה: הקלט בתוך " + fieldName +
                             " אינו מספר חוקי. שונה ל-" + DEFAULT_MAZE_SIZE + "."
             );
-
             return -1;
         }
     }
