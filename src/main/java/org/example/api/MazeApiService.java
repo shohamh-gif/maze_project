@@ -19,18 +19,15 @@ public class MazeApiService {
     private final OkHttpClient client;
 
     public MazeApiService() {
+        // אתחול לקוח ה-HTTP שיבצע את הבקשות
         this.client = new OkHttpClient();
     }
 
-    /**
-     * פונקציה המבצעת קריאת GET לשרת ומחזירה את נתוני הקונפיגורציה כאובייקט JSON.
-     */
+    //      פונקציה המבצעת קריאת GET לשרת ומחזירה את נתוני הקונפיגורציה (צבעים והגדרות) כאובייקט JSON.
     public JSONObject fetchRenderConfig() throws Exception {
-        Request request = new Request.Builder()
-                .url(CONFIG_URL)
-                .build();
+        Request request = new Request.Builder().url(CONFIG_URL).build();
 
-        try (Response response = client.newCall(request).execute()) {
+        try (Response response = this.client.newCall(request).execute()) {
             if (!response.isSuccessful()) {
                 throw new Exception("שגיאה בתגובת השרת: " + response.code());
             }
@@ -38,7 +35,11 @@ public class MazeApiService {
             return new JSONObject(data);
         }
     }
-    // שולחת בקשת GET לשרת עם width ו height ומחזירה תמונת מבוך
+
+    /**
+     * פונקציה השולחת בקשת GET לשרת עם פרמטרים של רוחב וגובה,
+     * וממירה את זרם הנתונים (ByteStream) חזרה לתמונה (BufferedImage).
+     */
     public BufferedImage fetchMazeImage(int mazeWidth, int mazeHeight) throws Exception {
         HttpUrl url = HttpUrl.parse(MAZE_IMAGE_URL)
                 .newBuilder()
@@ -46,11 +47,9 @@ public class MazeApiService {
                 .addQueryParameter("height", String.valueOf(mazeHeight))
                 .build();
 
-        Request request = new Request.Builder()
-                .url(url)
-                .build();
+        Request request = new Request.Builder().url(url).build();
 
-        try (Response response = client.newCall(request).execute()) {
+        try (Response response = this.client.newCall(request).execute()) {
             if (!response.isSuccessful()) {
                 throw new Exception("שגיאה בקבלת תמונת המבוך: " + response.code());
             }
@@ -59,6 +58,7 @@ public class MazeApiService {
                 throw new Exception("השרת החזיר תמונה ריקה");
             }
 
+            // קורא את התמונה הישירות מזרם הנתונים שהגיע מהשרת
             return ImageIO.read(response.body().byteStream());
         }
     }
