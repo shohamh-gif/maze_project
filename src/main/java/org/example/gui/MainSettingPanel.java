@@ -48,6 +48,7 @@ public class MainSettingPanel extends JPanel {
         this.apiService = new MazeApiService();
         this.mazeWidth = DEFAULT_MAZE_SIZE;
         this.mazeHeight = DEFAULT_MAZE_SIZE;
+
         this.setupPanel(x, y, windowWidth, windowHeight);
         this.add(this.createMainCard(windowWidth));
     }
@@ -85,6 +86,7 @@ public class MainSettingPanel extends JPanel {
         card.add(this.createGetMazeButton());
         card.add(Box.createVerticalStrut(15));
         card.add(this.createErrorLabel());
+
         return card;
     }
 
@@ -100,6 +102,7 @@ public class MainSettingPanel extends JPanel {
         titleLabel.setFont(TITLE_FONT);
         titleLabel.setForeground(Main.DEEP_PINK);
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
         return titleLabel;
     }
 
@@ -143,6 +146,7 @@ public class MainSettingPanel extends JPanel {
         label.setPreferredSize(new Dimension(configLabelWidth, 30));
         label.setMaximumSize(new Dimension(configLabelWidth, 30));
         label.setMinimumSize(new Dimension(configLabelWidth, 30));
+
         return label;
     }
 
@@ -151,6 +155,7 @@ public class MainSettingPanel extends JPanel {
         sizeTitle.setFont(Main.LABEL_FONT);
         sizeTitle.setForeground(Main.TEXT_DARK);
         sizeTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
+
         return sizeTitle;
     }
 
@@ -166,6 +171,7 @@ public class MainSettingPanel extends JPanel {
 
         fieldsPanel.add(this.createInputBox("רוחב", this.widthField));
         fieldsPanel.add(this.createInputBox("גובה", this.heightField));
+
         return fieldsPanel;
     }
 
@@ -181,6 +187,7 @@ public class MainSettingPanel extends JPanel {
         box.add(label);
         box.add(Box.createVerticalStrut(5));
         box.add(textField);
+
         return box;
     }
 
@@ -192,6 +199,7 @@ public class MainSettingPanel extends JPanel {
         this.getMazeButton.setVisible(false);
         this.getMazeButton.setEnabled(false); // יהפוך לפעיל רק לאחר קבלת הגדרות השרת
         this.getMazeButton.addActionListener(e -> this.handleGetMazeClick());
+
         return this.getMazeButton;
     }
 
@@ -200,6 +208,7 @@ public class MainSettingPanel extends JPanel {
         this.errorLabel.setForeground(Main.ERROR_COLOR);
         this.errorLabel.setFont(Main.LABEL_FONT);
         this.errorLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
         return this.errorLabel;
     }
 
@@ -221,6 +230,7 @@ public class MainSettingPanel extends JPanel {
             checkedHeight = DEFAULT_MAZE_SIZE;
             this.heightField.setText(String.valueOf(DEFAULT_MAZE_SIZE));
         }
+
         this.mazeWidth = checkedWidth;
         this.mazeHeight = checkedHeight;
 
@@ -234,6 +244,7 @@ public class MainSettingPanel extends JPanel {
 
     private void waitTwoSecondsAndLoadMaze() {
         this.getMazeButton.setEnabled(false);
+
         Timer timer = new Timer(2000, event -> {
             this.getMazeButton.setEnabled(true);
             this.errorLabel.setText(" ");
@@ -285,8 +296,14 @@ public class MainSettingPanel extends JPanel {
     }
 
     private String createConfigText() {
-        return String.format("צבע הקירות: %s | צבע הנתיב: %s | האם יהיו קווי רשת? %b | צבע קווי הרשת: %s | זמן השהיה: %d ms",
-                this.wallColor, this.pathColor, this.drawGrid, this.gridColor, this.animationDelay);
+        return String.format(
+                "צבע הקירות: %s | צבע הנתיב: %s | האם יהיו קווי רשת? %b | צבע קווי הרשת: %s | זמן השהיה: %d ms",
+                this.wallColor,
+                this.pathColor,
+                this.drawGrid,
+                this.gridColor,
+                this.animationDelay
+        );
     }
 
     // פניה לשרת לקבלת תמונת המבוך והמרתה למערך
@@ -298,6 +315,7 @@ public class MainSettingPanel extends JPanel {
             try {
                 BufferedImage mazeImage = this.apiService.fetchMazeImage(this.mazeWidth, this.mazeHeight);
                 this.mazePixel = this.convertImageToBooleanMatrix(mazeImage);
+
                 SwingUtilities.invokeLater(this::showMazePanel);
 
             } catch (Exception ex) {
@@ -305,6 +323,7 @@ public class MainSettingPanel extends JPanel {
                     this.errorLabel.setText("שגיאה: לא הצלחנו לקרוא את תמונת המבוך.");
                     this.getMazeButton.setEnabled(true);
                 });
+
                 ex.printStackTrace();
             }
         }).start();
@@ -313,7 +332,11 @@ public class MainSettingPanel extends JPanel {
     // מעבר למסך המבוך עם כל הנתונים שאספנו
     private void showMazePanel() {
         MazePanel mazePanel = new MazePanel(
-                MainSettingPanel.this,
+                // השינוי לאפשרות 2: מעבירים את ההוראות (Runnable) במקום את ה-JPanel!
+                () -> {
+                    this.prepareForNewMaze();
+                    Main.showPanel(this);
+                },
                 this.mazePixel,
                 this.decodeColor(this.wallColor, Color.BLACK),
                 this.decodeColor(this.pathColor, Color.WHITE),
@@ -321,6 +344,7 @@ public class MainSettingPanel extends JPanel {
                 this.decodeColor(this.gridColor, Color.GRAY),
                 this.animationDelay
         );
+
         Main.showPanel(mazePanel);
     }
 
@@ -356,7 +380,9 @@ public class MainSettingPanel extends JPanel {
                 }
             }
         }
+
         this.printMazeData(imageWidth, imageHeight, matrix, pathCells, wallCells);
+
         return matrix;
     }
 
@@ -396,6 +422,7 @@ public class MainSettingPanel extends JPanel {
                 }
             }
         }
+
         // אם יש יותר פיקסלים לבנים משחורים, זהו מעבר פתוח (Path)
         return whitePixels >= wallPixels;
     }
@@ -409,10 +436,11 @@ public class MainSettingPanel extends JPanel {
         if (value > maxValue) {
             return maxValue;
         }
+
         return value;
     }
 
-    // רק לבדיקה שהגדלים תקינים
+    // רק לבדיקה שהגדלים תקינים (מודפס לקונסול)
     private void printMazeData(int imageWidth, int imageHeight, boolean[][] matrix, int pathCells, int wallCells) {
         System.out.println("requested maze width = " + this.mazeWidth);
         System.out.println("requested maze height = " + this.mazeHeight);
@@ -458,11 +486,13 @@ public class MainSettingPanel extends JPanel {
             if (value >= MIN_MAZE_SIZE && value <= MAX_MAZE_SIZE) {
                 return value;
             }
+
             this.errorLabel.setText(
                     "שגיאה: " + fieldName + " מחוץ לטווח (" +
                             MIN_MAZE_SIZE + "-" + MAX_MAZE_SIZE +
                             "). שונה ל-" + DEFAULT_MAZE_SIZE + "."
             );
+
             return -1;
 
         } catch (NumberFormatException e) {
@@ -470,6 +500,7 @@ public class MainSettingPanel extends JPanel {
                     "שגיאה: הקלט בתוך " + fieldName +
                             " אינו מספר חוקי. שונה ל-" + DEFAULT_MAZE_SIZE + "."
             );
+
             return -1;
         }
     }
