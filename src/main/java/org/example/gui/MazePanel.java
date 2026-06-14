@@ -1,7 +1,6 @@
 package org.example.gui;
 
 import org.example.Main;
-
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
