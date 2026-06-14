@@ -6,14 +6,13 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
+import java.util.List; // הורדנו את Queue ו-LinkedList!
 
 // המחלקה הזאת מייצגת את החלון השלם של המבוך: הכותרת למעלה, הקנבס באמצע, והכפתורים למטה
 public class MazePanel extends JPanel {
 
-    private final JPanel previousPanel;
+    // השינוי לאפשרות 2: שומרים פעולה (Runnable) במקום לשמור את הפאנל הקודם
+    private final Runnable onBackAction;
     private final int animationDelay; // זמן ההמתנה בין צעד לצעד באנימציה
     private final boolean[][] mazeMatrix;
 
@@ -22,12 +21,20 @@ public class MazePanel extends JPanel {
     private JButton checkSolutionButton;
     private Timer animationTimer; // אחראי על ניהול הזמנים של אנימציית הפתרון
 
-    // הבנאי מקבל את כל ההגדרות מהמסך הקודם, ושולח לפונקציית עזר שתבנה את ממשק המשתמש
-    public MazePanel(JPanel previousPanel, boolean[][] mazeMatrix, Color wallColor, Color pathColor, boolean drawGrid,
-                     Color gridColor, int animationDelay) {
-        this.previousPanel = previousPanel;
+    // הבנאי מקבל את הפעולה (מה לעשות כשלוחצים חזור) ואת ההגדרות, ובונה את הממשק
+    public MazePanel(
+            Runnable onBackAction,
+            boolean[][] mazeMatrix,
+            Color wallColor,
+            Color pathColor,
+            boolean drawGrid,
+            Color gridColor,
+            int animationDelay
+    ) {
+        this.onBackAction = onBackAction;
         this.animationDelay = animationDelay;
         this.mazeMatrix = mazeMatrix;
+
         this.setupUI(wallColor, pathColor, drawGrid, gridColor);
     }
 
@@ -36,10 +43,12 @@ public class MazePanel extends JPanel {
         this.setLayout(new BorderLayout());
         this.setBackground(Main.LIGHT_PINK);
         this.setOpaque(true);
+
         this.add(this.createTopPanel(), BorderLayout.NORTH);
 
         this.mazeCanvas = new MazeCanvas(this.mazeMatrix, wallColor, pathColor, drawGrid, gridColor);
         this.add(this.mazeCanvas, BorderLayout.CENTER);
+
         this.add(this.createButtonPanel(), BorderLayout.SOUTH);
     }
 
@@ -55,6 +64,7 @@ public class MazePanel extends JPanel {
         this.statusLabel.setForeground(Main.TEXT_DARK);
 
         topPanel.add(this.statusLabel, BorderLayout.CENTER);
+
         return topPanel;
     }
 
@@ -74,18 +84,15 @@ public class MazePanel extends JPanel {
         buttonPanel.setBackground(Main.LIGHT_PINK);
         buttonPanel.add(backButton);
         buttonPanel.add(this.checkSolutionButton);
+
         return buttonPanel;
     }
 
-    // פעולה בעת לחיצה על "חזור" - עוצרת אנימציות רצות ומחזירה למסך ההגדרות
+    // פעולה בעת לחיצה על "חזור" - עוצרת אנימציות רצות ומריצה את פעולת החזרה שקיבלנו מהמסך הקודם
     private void handleBackButton() {
         this.stopAnimationIfNeeded();
-
-        if (this.previousPanel instanceof MainSettingPanel) {
-            MainSettingPanel settingPanel = (MainSettingPanel) this.previousPanel;
-            settingPanel.prepareForNewMaze();
-        }
-        Main.showPanel(this.previousPanel);
+        // מריצים את ה-Runnable! קוד סופר-נקי בלי שום צורך ב-instanceof
+        this.onBackAction.run();
     }
 
     // פעולה בעת לחיצה על "בדוק פתרון" - מחשבת מסלול ומפעילה את האנימציה
@@ -146,8 +153,8 @@ public class MazePanel extends JPanel {
 
     /**
      * אלגוריתם חיפוש לרוחב (Breadth-First Search).
-     * סורק את המבוך "שכבה אחרי שכבה" מנקודת ההתחלה,
-     * מה שמבטיח שהוא ימצא תמיד את המסלול הקצר ביותר!
+     * סורק את המבוך "שכבה אחרי שכבה" מנקודת ההתחלה.
+     * עבר התאמה לעבוד רק עם List (רשימה) במקום Queue (תור) לפי הדרישות.
      */
     private List<Point> findPathBFS() {
         int rows = this.mazeMatrix.length;
@@ -160,30 +167,41 @@ public class MazePanel extends JPanel {
 
         boolean[][] visited = new boolean[rows][cols]; // מעקב איפה כבר היינו
         Point[][] parent = new Point[rows][cols]; // מעקב מאיפה הגענו לכל תא (לצורך שחזור הדרך)
-        Queue<Point> queue = new LinkedList<>(); // התור שינהל את סדר הבדיקה
 
-        queue.add(new Point(0, 0));
+        // יצירת רשימה רגילה שתתפקד עבורנו כמו תור!
+        List<Point> searchList = new ArrayList<>();
+
+        searchList.add(new Point(0, 0)); // הוספה לסוף הרשימה
         visited[0][0] = true;
 
         // מערכי עזר לתנועה (למעלה, למטה, שמאלה, ימינה). לא כולל אלכסונים!
         int[] dy = {-1, 1, 0, 0};
         int[] dx = {0, 0, -1, 1};
 
-        Point endPoint = this.searchMaze(queue, visited, parent, rows, cols, dy, dx);
+        Point endPoint = this.searchMaze(searchList, visited, parent, rows, cols, dy, dx);
 
         // אם המבוך חסום
         if (endPoint == null) {
             return null;
         }
+
         // קריאה לפונקציית העזר כדי להפוך את אוסף הנתונים למסלול מסודר
         return this.reconstructPath(parent, cols - 1, rows - 1);
     }
 
-    // הלולאה המרכזית של אלגוריתם ה-BFS (מופרדת לפונקציה כדי לשמור על קוד נקי)
-    private Point searchMaze(Queue<Point> queue, boolean[][] visited, Point[][] parent,
-                             int rows, int cols, int[] dy, int[] dx) {
-        while (!queue.isEmpty()) {
-            Point current = queue.poll(); // הוצאת התא הבא מהתור
+    // הלולאה המרכזית של האלגוריתם (מופרדת לפונקציה כדי לשמור על קוד נקי)
+    private Point searchMaze(
+            List<Point> searchList,
+            boolean[][] visited,
+            Point[][] parent,
+            int rows,
+            int cols,
+            int[] dy,
+            int[] dx
+    ) {
+        while (!searchList.isEmpty()) {
+            // ה"קסם": במקום poll של תור, אנחנו פשוט מוציאים תמיד את האיבר הראשון ברשימה!
+            Point current = searchList.remove(0);
 
             // אם הגענו לסוף המבוך (למטה-ימינה), מחזירים את התא המנצח
             if (current.y == rows - 1 && current.x == cols - 1) {
@@ -191,14 +209,23 @@ public class MazePanel extends JPanel {
             }
 
             // אחרת, ממשיכים לבדוק לאן אפשר להתקדם
-            this.checkNeighbors(current, queue, visited, parent, rows, cols, dy, dx);
+            this.checkNeighbors(current, searchList, visited, parent, rows, cols, dy, dx);
         }
+
         return null;
     }
 
-    // בודקת את ארבעת השכנים של התא הנוכחי ומוסיפה אותם לתור אם מותר לעבור אליהם
-    private void checkNeighbors(Point current, Queue<Point> queue, boolean[][] visited, Point[][] parent,
-                                int rows, int cols, int[] dy, int[] dx) {
+    // בודקת את ארבעת השכנים של התא הנוכחי ומוסיפה אותם לרשימה אם מותר לעבור אליהם
+    private void checkNeighbors(
+            Point current,
+            List<Point> searchList,
+            boolean[][] visited,
+            Point[][] parent,
+            int rows,
+            int cols,
+            int[] dy,
+            int[] dx
+    ) {
         for (int i = 0; i < 4; i++) {
             int nextY = current.y + dy[i];
             int nextX = current.x + dx[i];
@@ -206,7 +233,9 @@ public class MazePanel extends JPanel {
             if (this.isLegalMove(nextY, nextX, rows, cols, visited)) {
                 visited[nextY][nextX] = true;
                 parent[nextY][nextX] = current; // שמירת תא המוצא ("האבא") של התא החדש
-                queue.add(new Point(nextX, nextY));
+
+                // הוספת התא החדש לסוף הרשימה (עובד בדיוק כמו הכנסה לתור)
+                searchList.add(new Point(nextX, nextY));
             }
         }
     }
@@ -220,6 +249,7 @@ public class MazePanel extends JPanel {
         if (col < 0 || col >= cols) {
             return false;
         }
+
         return this.mazeMatrix[row][col] && !visited[row][col];
     }
 
@@ -235,6 +265,7 @@ public class MazePanel extends JPanel {
 
         // כיוון שאספנו מהסוף להתחלה, חובה להפוך את הרשימה כדי שהאנימציה תרוץ מההתחלה לסוף!
         Collections.reverse(path);
+
         return path;
     }
 }
