@@ -6,7 +6,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List; // הורדנו את Queue ו-LinkedList!
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
 
 // המחלקה הזאת מייצגת את החלון השלם של המבוך: הכותרת למעלה, הקנבס באמצע, והכפתורים למטה
 public class MazePanel extends JPanel {
@@ -153,8 +155,8 @@ public class MazePanel extends JPanel {
 
     /**
      * אלגוריתם חיפוש לרוחב (Breadth-First Search).
-     * סורק את המבוך "שכבה אחרי שכבה" מנקודת ההתחלה.
-     * עבר התאמה לעבוד רק עם List (רשימה) במקום Queue (תור) לפי הדרישות.
+     * סורק את המבוך "שכבה אחרי שכבה" מנקודת ההתחלה,
+     * מה שמבטיח שהוא ימצא תמיד את המסלול הקצר ביותר!
      */
     private List<Point> findPathBFS() {
         int rows = this.mazeMatrix.length;
@@ -167,18 +169,16 @@ public class MazePanel extends JPanel {
 
         boolean[][] visited = new boolean[rows][cols]; // מעקב איפה כבר היינו
         Point[][] parent = new Point[rows][cols]; // מעקב מאיפה הגענו לכל תא (לצורך שחזור הדרך)
+        Queue<Point> queue = new LinkedList<>(); // התור שינהל את סדר הבדיקה
 
-        // יצירת רשימה רגילה שתתפקד עבורנו כמו תור!
-        List<Point> searchList = new ArrayList<>();
-
-        searchList.add(new Point(0, 0)); // הוספה לסוף הרשימה
+        queue.add(new Point(0, 0));
         visited[0][0] = true;
 
         // מערכי עזר לתנועה (למעלה, למטה, שמאלה, ימינה). לא כולל אלכסונים!
         int[] dy = {-1, 1, 0, 0};
         int[] dx = {0, 0, -1, 1};
 
-        Point endPoint = this.searchMaze(searchList, visited, parent, rows, cols, dy, dx);
+        Point endPoint = this.searchMaze(queue, visited, parent, rows, cols, dy, dx);
 
         // אם המבוך חסום
         if (endPoint == null) {
@@ -189,9 +189,9 @@ public class MazePanel extends JPanel {
         return this.reconstructPath(parent, cols - 1, rows - 1);
     }
 
-    // הלולאה המרכזית של האלגוריתם (מופרדת לפונקציה כדי לשמור על קוד נקי)
+    // הלולאה המרכזית של אלגוריתם ה-BFS (מופרדת לפונקציה כדי לשמור על קוד נקי)
     private Point searchMaze(
-            List<Point> searchList,
+            Queue<Point> queue,
             boolean[][] visited,
             Point[][] parent,
             int rows,
@@ -199,9 +199,8 @@ public class MazePanel extends JPanel {
             int[] dy,
             int[] dx
     ) {
-        while (!searchList.isEmpty()) {
-            // ה"קסם": במקום poll של תור, אנחנו פשוט מוציאים תמיד את האיבר הראשון ברשימה!
-            Point current = searchList.remove(0);
+        while (!queue.isEmpty()) {
+            Point current = queue.poll(); // הוצאת התא הבא מהתור
 
             // אם הגענו לסוף המבוך (למטה-ימינה), מחזירים את התא המנצח
             if (current.y == rows - 1 && current.x == cols - 1) {
@@ -209,16 +208,16 @@ public class MazePanel extends JPanel {
             }
 
             // אחרת, ממשיכים לבדוק לאן אפשר להתקדם
-            this.checkNeighbors(current, searchList, visited, parent, rows, cols, dy, dx);
+            this.checkNeighbors(current, queue, visited, parent, rows, cols, dy, dx);
         }
 
         return null;
     }
 
-    // בודקת את ארבעת השכנים של התא הנוכחי ומוסיפה אותם לרשימה אם מותר לעבור אליהם
+    // בודקת את ארבעת השכנים של התא הנוכחי ומוסיפה אותם לתור אם מותר לעבור אליהם
     private void checkNeighbors(
             Point current,
-            List<Point> searchList,
+            Queue<Point> queue,
             boolean[][] visited,
             Point[][] parent,
             int rows,
@@ -233,9 +232,7 @@ public class MazePanel extends JPanel {
             if (this.isLegalMove(nextY, nextX, rows, cols, visited)) {
                 visited[nextY][nextX] = true;
                 parent[nextY][nextX] = current; // שמירת תא המוצא ("האבא") של התא החדש
-
-                // הוספת התא החדש לסוף הרשימה (עובד בדיוק כמו הכנסה לתור)
-                searchList.add(new Point(nextX, nextY));
+                queue.add(new Point(nextX, nextY));
             }
         }
     }
